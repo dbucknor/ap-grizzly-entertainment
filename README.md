@@ -6,8 +6,9 @@ Codebase for Grizzly Entertainment management system. Advanced Programming proje
 
 #### Development Stack
 
-+ Java SDK 17
-+ MySql 8
++ Java SDK 17 -https://www.oracle.com/in/java/technologies/downloads/#java17
++ MySql v8.0.34 - https://dev.mysql.com/downloads/mysql/
++ MySql Workbench v8.0.34 - https://dev.mysql.com/downloads/workbench/
 + MySQL Connector/J (JDBC)
 + Spring Framework
 + Maven
