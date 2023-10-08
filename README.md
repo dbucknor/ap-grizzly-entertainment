@@ -1,3 +1,5 @@
+![grizzly-entertainment-03](https://github.com/dorianbucknor/ap-grizzly-entertainment/assets/61596562/09868669-22b7-46b4-9cef-922b277c3f5b)
+
 # Grizzly's Entertainment Rental System
 
 Codebase for Grizzly Entertainment management system. Advanced Programming project.
