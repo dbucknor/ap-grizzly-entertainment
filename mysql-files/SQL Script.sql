@@ -1,59 +1,86 @@
-CREATE TABLE `Equipment`
+CREATE DATABASE IF NOT EXISTS RentalSystemDB;
+USE RentalSystemDB;
+
+CREATE TABLE IF NOT EXISTS Equipment
 (
-    `equipmentId`       varchar(50),
+    `equipmentId`       VARCHAR(50),
     `description`       text(350),
-    `condition`         varchar(50),
-    `name`              varchar(80),
-    `category`          varchar(50),
-    `rentalStatus`      varchar(16),
-    `type`              varchar(24),
-    `price`             double(16, 2),
-    `rentBy`            varchar(16),
-    `nextAvailableDate` varchar(50),
+    `condition`         VARCHAR(50),
+    `name`              VARCHAR(80),
+    `category`          VARCHAR(50),
+    `rentalStatus`      VARCHAR(16),
+    `type`              VARCHAR(24),
+    `price`             DOUBLE(16, 2),
+    `rentBy`            VARCHAR(16),
+    `nextAvailableDate` VARCHAR(50),
     PRIMARY KEY (`equipmentId`)
 );
 
-CREATE TABLE `Customer`
+CREATE TABLE IF NOT EXISTS Customer
 (
-    `customerId`  varchar(50),
-    `firstname`   varchar(50),
-    `lastName`    varchar(50),
-    `address`     varchar(80),
-    `phoneNumber` varchar(10),
-    `password`    varchar(16),
-    `imageUrl`    varchar(150),
+    `customerId`  VARCHAR(50),
+    `firstname`   VARCHAR(50),
+    `lastName`    VARCHAR(50),
+    `address`     VARCHAR(80),
+    `phoneNumber` VARCHAR(10),
+    `password`    VARCHAR(16),
+    `imageUrl`    MEDIUMBLOB,
     PRIMARY KEY (`customerId`)
 );
 
-CREATE TABLE `Employee`
+CREATE TABLE IF NOT EXISTS Employee
 (
-    `staffId`     varchar(50),
-    `firstname`   varchar(50),
-    `lastName`    varchar(50),
-    `address`     varchar(80),
-    `phoneNumber` varchar(10),
-    `imageUrl`    varchar(150),
-    `password`    varchar(16),
+    `staffId`     VARCHAR(50),
+    `firstname`   VARCHAR(50),
+    `lastName`    VARCHAR(50),
+    `address`     VARCHAR(80),
+    `phoneNumber` VARCHAR(10),
+    `imageUrl`    VARCHAR(150),
+    `password`    VARCHAR(16),
     PRIMARY KEY (`staffId`)
 );
 
-CREATE TABLE `Invoices`
+CREATE TABLE IF NOT EXISTS Invoices
 (
-    `invoiceId`   INT AUTO_INCREMENT PRIMARY KEY,
+    `invoiceId`   INT AUTO_INCREMENT,
     `customerId`  INT,
     `invoiceDate` DATE,
-    `totalPrice`  DECIMAL(10, 2)
+    `totalPrice`  DECIMAL(10, 2),
+    PRIMARY KEY (`invoiceId`)
 );
 
-CREATE TABLE InvoiceDetails
+CREATE TABLE IF NOT EXISTS InvoiceItem
 (
-    invoiceDetailId INT AUTO_INCREMENT PRIMARY KEY,
+    invoiceDetailId INT AUTO_INCREMENT,
     invoiceId       INT,
-    equipmentId     INT,
-    Quantity        INT,
-    RentalStartDate DATE,
-    RentalEndDate   DATE,
-
+    equipmentId     VARCHAR(50),
+    quantity        INT,
+    rentalStartDate DATE,
+    rentalEndDate   DATE,
+    PRIMARY KEY (`invoiceDetailId`),
     FOREIGN KEY (invoiceId) REFERENCES Invoices (invoiceId),
     FOREIGN KEY (equipmentId) REFERENCES Equipment (equipmentId)
 );
+
+CREATE TABLE IF NOT EXISTS Messages
+(
+    messageID  VARCHAR(50),
+    message    LONGTEXT,
+    senderId   VARCHAR(50),
+    date       DATETIME,
+    receiverId VARCHAR(50)
+);
+
+CREATE TABLE IF NOT EXISTS RentalRequests
+(
+    requestId   INT,
+    requestDate DATETIME,
+    customerId  VARCHAR(50),
+    approved    BOOLEAN,
+    approvedBy  VARCHAR(50),
+    PRIMARY KEY (requestId),
+    FOREIGN KEY (customerId) REFERENCES Customer (customerId),
+    FOREIGN KEY (requestId) REFERENCES Invoices (invoiceId),
+    FOREIGN KEY (approvedBy) REFERENCES Employee (staffId)
+);
+
