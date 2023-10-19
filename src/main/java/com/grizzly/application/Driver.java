@@ -1,5 +1,7 @@
 package com.grizzly.application;
 
+import com.grizzly.application.controllers.AppController;
+import com.grizzly.application.views.MainWindow;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -9,13 +11,9 @@ import java.awt.*;
 @SpringBootApplication
 public class Driver {
 
-    Driver() {
-        JFrame f = new JFrame("Componenets Test");
-        f.setPreferredSize(new Dimension(800, 500));
-        f.setVisible(true);
-    }
-
     public static void main(String[] args) {
-        SpringApplication.run(Driver.class, args);
+        AppController controller = new AppController();
+        controller.showGUI();
+//        SpringApplication.run(Driver.class, args);
     }
 }
