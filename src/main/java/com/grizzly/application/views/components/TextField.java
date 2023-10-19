@@ -1,6 +1,6 @@
 package com.grizzly.application.views.components;
 
-import com.grizzly.application.views.ThemeManager;
+import com.grizzly.application.theme.ThemeManager;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -11,29 +11,44 @@ import java.awt.event.FocusListener;
 import java.util.function.Function;
 
 public class TextField extends JPanel {
-    private String label;
-    private String value;
-    private JTextField field;
-    private JLabel fieldLbl;
-    private ThemeManager theme = ThemeManager.getInstance();
-    private Function<String, String> onChangeCallBack;
-    private Function<String, String> onBlurCallBack;
-    private String type;
+    protected String label;
+    protected String value;
+    protected JTextField field;
+    protected JLabel fieldLbl;
+    protected ThemeManager theme = ThemeManager.getInstance();
+    protected Function<String, String> onChangeCallBack;
+    protected Function<String, String> onBlurCallBack;
+    protected boolean obscure;
 
     public TextField() {
-        super();
         value = "";
         label = "Default Label";
-        type = "text";
         initComponents();
         setProps();
     }
 
-    public TextField(String label, String value, String type) {
-        super();
+    public TextField(String label) {
+        this.value = "";
+        this.label = label;
+
+        initComponents();
+        addListeners();
+        setProps();
+    }
+
+    public TextField(String label, boolean obscure) {
+        this.value = "";
+        this.label = label;
+        this.obscure = obscure;
+
+        initComponents();
+        addListeners();
+        setProps();
+    }
+
+    public TextField(String label, String value) {
         this.value = value;
         this.label = label;
-        this.type = type;
         this.setLayout(new BorderLayout());
 
         initComponents();
@@ -41,7 +56,13 @@ public class TextField extends JPanel {
         setProps();
     }
 
-    private void addListeners() {
+    protected void handleBlur() {
+        if (onBlurCallBack != null) {
+            onBlurCallBack.apply(value);
+        }
+    }
+
+    protected void addListeners() {
         field.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -50,35 +71,31 @@ public class TextField extends JPanel {
 
             @Override
             public void focusLost(FocusEvent e) {
-                if (onBlurCallBack != null) {
-                    onBlurCallBack.apply(value);
-                }
+                handleBlur();
             }
         });
 
         field.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                handleValueChange();
+                handleChange();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                handleValueChange();
+                handleChange();
 
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                handleValueChange();
-
+                handleChange();
             }
         });
     }
 
-    private void handleValueChange() {
+    protected void handleChange() {
         if (field.hasFocus() && field.getText().compareTo(value) != 0) {
-//            System.out.println(field.getText());
             value = field.getText().trim();
         }
         if (onChangeCallBack != null) {
@@ -87,39 +104,41 @@ public class TextField extends JPanel {
 
     }
 
-    private void initComponents() {
-        field = new JTextField();
+    protected void initComponents() {
+        this.setLayout(new BorderLayout());
 
-        if (type.toLowerCase().compareTo("password") == 0) {
-            field = new JPasswordField();
-        }
+        field = obscure ? new JPasswordField() : new JTextField();
+        field.setVisible(true);
 
         field.setOpaque(true);
-        field.setBackground(theme.getAccent1());
-        field.setPreferredSize(new Dimension(200, 30));
-//        field.setSize(new Dimension(200, 30));
-        field.setBorder(null);
-//        field.setMaximumSize(new Dimension(-1, -1));
+        field.setBackground(theme.getCurrentScheme().getAccent1());
+        field.setPreferredSize(new Dimension(300, 40));
+        field.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 5));
+        field.setFont(new Font("Montserrat Light", Font.PLAIN, 18));
+        field.setForeground(theme.getCurrentScheme().getPrimary());
         field.setVisible(true);
 
         fieldLbl = new JLabel();
+        fieldLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 5));
+        fieldLbl.setFont(new Font("Montserrat Light", Font.PLAIN, 18));
+        fieldLbl.setLabelFor(field);
+        fieldLbl.setForeground(Color.DARK_GRAY); //TODO: impleme
         fieldLbl.setText(label);
         fieldLbl.setVisible(true);
-
-
     }
 
-    private void setProps() {
+
+    protected void setProps() {
+        if (value != null && !value.isEmpty()) {
+            field.setText(value);
+        }
+
         this.add(fieldLbl, BorderLayout.NORTH);
-        this.add(field, BorderLayout.SOUTH);
-        this.setPreferredSize(new Dimension(200, 50));
-
+        this.add(field, BorderLayout.CENTER);
+        this.setPreferredSize(new Dimension(300, 65));
+        this.setMaximumSize(new Dimension(300, 65));
+        this.setMinimumSize(new Dimension(300, 65));
         this.setVisible(true);
-
-
-//        this.setMinimumSize(new Dimension(-1, -1));
-//        this.setMaximumSize(new Dimension(-1, -1));
-
     }
 
     public String getLabel() {
@@ -142,15 +161,24 @@ public class TextField extends JPanel {
         onBlurCallBack = onBlur;
     }
 
+    public boolean isObscured() {
+        return obscure;
+    }
+
+    public void setObscured(boolean obscure) {
+        this.obscure = obscure;
+    }
+
     public void setValue(String value) {
         this.value = value;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
+    @Override
+    public String toString() {
+        return "TextField{" +
+                "label='" + label + '\'' +
+                ", value='" + value + '\'' +
+                '}';
     }
 }
+
