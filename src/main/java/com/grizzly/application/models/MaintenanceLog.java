@@ -1,53 +1,92 @@
 package com.grizzly.application.models;
 
-import java.io.Serializable;
-import java.util.Date;
+import com.grizzly.application.models.enums.Condition;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+@Entity(name = "MaintenanceLog")
+@Table(name = "MaintenanceLog")
 public class MaintenanceLog implements Serializable {
-    private Date maintenanceDate;
-    private String equipmentName;
-    private String condition;
+    @Id
+    @Column(name = "timestamp")
+    private String timestamp;
+    @Column(name = "date")
+    private LocalDateTime date;
+    @Column(name = "equipmentId")
+    private String equipmentId;
+    @Column(name = "condition")
+    @Enumerated(EnumType.STRING)
+    private Condition condition;
+    @Column(name = "details")
     private String details;
 
+    public MaintenanceLog() {
+        this.timestamp = "0";
+        this.date = null;
+        this.equipmentId = null;
+        this.condition = null;
+        this.details = null;
+    }
 
-    public MaintenanceLog(Date maintenanceDate, String equipmentName, String condition, String details) {
-        this.maintenanceDate = maintenanceDate;
-        this.equipmentName = equipmentName;
+    public MaintenanceLog(String timestamp, LocalDateTime date, String equipmentName, Condition condition, String details) {
+        this.timestamp = timestamp;
+        this.date = date;
+        this.equipmentId = equipmentName;
         this.condition = condition;
         this.details = details;
     }
 
-
-    public MaintenanceLog(Date maintenanceDate, String equipmentName, String condition) {
-        this(maintenanceDate, equipmentName, condition, "");
-    }
-
-
     public MaintenanceLog(MaintenanceLog other) {
-        this(other.maintenanceDate, other.equipmentName, other.condition, other.details);
+        this.timestamp = other.timestamp;
+        this.date = other.date;
+        this.equipmentId = other.equipmentId;
+        this.condition = other.condition;
+        this.details = other.details;
     }
 
-    //toString
+    @Override
     public String toString() {
         return "MaintenanceLog{" +
-                "maintenanceDate=" + maintenanceDate +
-                ", equipmentName='" + equipmentName + '\'' +
-                ", condition='" + condition + '\'' +
+                "timestamp='" + timestamp + '\'' +
+                ", maintenanceDate=" + date +
+                ", equipmentName='" + equipmentId + '\'' +
+                ", condition=" + condition +
                 ", details='" + details + '\'' +
                 '}';
     }
 
-
-    public Date getMaintenanceDate() {
-        return maintenanceDate;
+    public String getTimestamp() {
+        return timestamp;
     }
 
-    public String getEquipmentName() {
-        return equipmentName;
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
-    public String getCondition() {
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime maintenanceDate) {
+        this.date = maintenanceDate;
+    }
+
+    public String getEquipmentId() {
+        return equipmentId;
+    }
+
+    public void setEquipmentId(String equipmentId) {
+        this.equipmentId = equipmentId;
+    }
+
+    public Condition getCondition() {
         return condition;
+    }
+
+    public void setCondition(Condition condition) {
+        this.condition = condition;
     }
 
     public String getDetails() {

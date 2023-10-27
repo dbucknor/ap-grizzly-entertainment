@@ -1,22 +1,42 @@
 package com.grizzly.application.models;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
+import com.grizzly.application.models.equipment.Equipment;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+
+@Entity
+@Table(name = "invoice")
 public class Quote implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String quoteId;
     private String customerId;
     private String customerName;
     private Date date;
-    private String deliveryAddress;
+    @Transient
+    private Address deliveryAddress;
     private String equipmentTransport;
     private float totalPrice;
     private float discount;
-    private ArrayList<Equipment> equipments;//asume there is an equipment list
+    @OneToMany
+    private ArrayList<Equipment> equipments;
 
+    public Quote() {
+        this.quoteId = null;
+        this.customerId = null;
+        this.customerName = null;
+        this.date = null;
+        this.deliveryAddress = null;
+        this.equipmentTransport = null;
+        this.totalPrice = 0.0f;
+        this.discount = 0.0f;
+        this.equipments = null;
+    }
 
-    public Quote(String quoteId, String customerId, String customerName, Date date, String deliveryAddress,
+    public Quote(String quoteId, String customerId, String customerName, Date date, Address deliveryAddress,
                  String equipmentTransport, float totalPrice, float discount, ArrayList<Equipment> equipments) {
         this.quoteId = quoteId;
         this.customerId = customerId;
@@ -27,11 +47,6 @@ public class Quote implements Serializable {
         this.totalPrice = totalPrice;
         this.discount = discount;
         this.equipments = equipments;
-    }
-
-
-    public Quote(String quoteId, String customerId, String customerName, Date date) {
-        this(quoteId, customerId, customerName, date, null, null, 0, 0, 0);
     }
 
 
@@ -76,7 +91,6 @@ public class Quote implements Serializable {
     }
 
 
-
     public String getQuoteId() {
         return quoteId;
     }
@@ -94,8 +108,7 @@ public class Quote implements Serializable {
     }
 
 
-
-    public String getDeliveryAddress() {
+    public Address getDeliveryAddress() {
         return deliveryAddress;
     }
 
@@ -111,13 +124,11 @@ public class Quote implements Serializable {
         return discount;
     }
 
-    //if equiments is a list
     public ArrayList<Equipment> getEquipments() {
         return equipments;
     }
 
-
-    public void setDeliveryAddress(String deliveryAddress) {
+    public void setDeliveryAddress(Address deliveryAddress) {
         this.deliveryAddress = deliveryAddress;
     }
 
