@@ -1,19 +1,23 @@
 package com.grizzly.application;
 
-import com.grizzly.application.controllers.AppController;
-import com.grizzly.application.views.MainWindow;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import javax.swing.*;
-import java.awt.*;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
 public class Driver {
 
     public static void main(String[] args) {
-        AppController controller = new AppController();
-        controller.showGUI();
-//        SpringApplication.run(Driver.class, args);
+//        String query = "SELECT u FROM User u WHERE u.email = :email :email :email :email :j :man";
+//        List<String> s = Set.copyOf(Arrays.stream(query.split(" ")).filter((str) -> str.contains(":")).toList()).stream().toList();
+//        System.out.println(s);
+//
+//        AuthService service = new AuthService();
+//        User user = service.logIn("bucknor.dorian@gmail.comm", "password");
+//        System.out.println(user);
+        SpringApplicationBuilder builder = new SpringApplicationBuilder(Driver.class);
+        builder.headless(false);
+        System.setProperty("spring.devtools.restart.enabled", "false");
+        ConfigurableApplicationContext context = builder.run(args);
     }
 }

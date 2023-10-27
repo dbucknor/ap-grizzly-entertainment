@@ -5,12 +5,11 @@ import com.grizzly.application.theme.FontLoader;
 import com.grizzly.application.theme.FontLoaderException;
 import com.grizzly.application.theme.ThemeManager;
 import com.grizzly.application.views.MainWindow;
+import org.springframework.stereotype.Component;
 
-import javax.xml.crypto.URIReferenceException;
 import java.awt.*;
-import java.io.File;
-import java.util.Arrays;
 
+@Component
 public class AppController {
     private MainWindow mainWindow;
     private ThemeManager themeManager;
@@ -20,9 +19,6 @@ public class AppController {
     public AppController() {
         themeManager = ThemeManager.getInstance();
         setTheme();
-    }
-
-    public void showGUI() {
         mainWindow = new MainWindow();
     }
 
@@ -45,9 +41,9 @@ public class AppController {
         Color primary = new Color(0, 39, 97);
         Color secondary = new Color(0, 129, 207);
         Color accent1 = new Color(230, 244, 241);
-        Color accent2 = Color.RED;
-        Color neutralDark = Color.BLACK;
-        Color neutralLight = Color.WHITE;
+        Color accent2 = new Color(255, 0, 0);
+        Color neutralDark = new Color(0, 0, 0);
+        Color neutralLight = new Color(255, 255, 255);
 
         ColorScheme light = new ColorScheme(primary, secondary, accent1, accent2, neutralDark, neutralLight);
 
@@ -55,4 +51,9 @@ public class AppController {
         themeManager.setLightScheme(light);
         themeManager.setUseDarkTheme(false);
     }
+
+    public void run() {
+
+    }
+
 }
