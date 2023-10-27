@@ -1,6 +1,5 @@
 package com.grizzly.application.models.equipment;
 
-import com.grizzly.application.models.MaintenanceLog;
 import com.grizzly.application.models.enums.Condition;
 import com.grizzly.application.models.enums.RentedPer;
 

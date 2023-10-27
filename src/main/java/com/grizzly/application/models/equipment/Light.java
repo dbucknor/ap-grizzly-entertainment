@@ -1,6 +1,5 @@
 package com.grizzly.application.models.equipment;
 
-import com.grizzly.application.models.MaintenanceLog;
 import com.grizzly.application.models.enums.RentedPer;
 
 import java.time.LocalDateTime;
@@ -18,9 +17,9 @@ public class Light extends Equipment {
     }
 
     public Light(String id, String name, String description, String category, float price,
-                 ArrayList<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvaliableDate, String lumens,
+                 ArrayList<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvailableDate, String lumens,
                  String wattage, String voltage, RentedPer rentedPer) {
-        super(id, name, description, category, price, maintenanceLogs, type, nextAvaliableDate, rentedPer);
+        super(id, name, description, category, price, maintenanceLogs, type, nextAvailableDate, rentedPer);
         this.lumens = lumens;
         this.wattage = wattage;
         this.voltage = voltage;

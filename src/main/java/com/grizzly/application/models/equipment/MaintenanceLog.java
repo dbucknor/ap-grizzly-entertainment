@@ -1,4 +1,4 @@
-package com.grizzly.application.models;
+package com.grizzly.application.models.equipment;
 
 import com.grizzly.application.models.enums.Condition;
 
