@@ -20,8 +20,7 @@ public class ThemeManager implements Serializable {
     private ColorScheme lightScheme;
 
     /**
-     * Private constructor to only allow one instance of this class to be created;
-     * Research Singleton implementation
+     * Private constructor to only allow one instance of this class to be created
      */
     private ThemeManager() {
         darkScheme = new ColorScheme();

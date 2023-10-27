@@ -2,6 +2,7 @@ package com.grizzly.application.views.components;
 
 import com.grizzly.application.views.MainWindow;
 import com.grizzly.application.theme.ThemeManager;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.ionicons4.Ionicons4IOS;
 
 import javax.imageio.ImageIO;
@@ -53,7 +54,7 @@ public class HeaderView extends JPanel {
         lbl1.setForeground(theme.getCurrentScheme().getNeutralLight());
         lbl2.setForeground(theme.getCurrentScheme().getNeutralLight());
 
-        accIcon = new Button(Ionicons4IOS.PERSON);
+        accIcon = new Button(FontAwesomeSolid.USER_CIRCLE);
         cartIcon = new Button(Ionicons4IOS.CART);
         messageIcon = new Button(Ionicons4IOS.CHATBUBBLES);
         modeIcon = new Button(Ionicons4IOS.SUNNY);
@@ -85,7 +86,7 @@ public class HeaderView extends JPanel {
     }
 
     private void addListeners() {
-        modeIcon.onClick((e) -> {
+        modeIcon.addActionListener((e) -> {
             darkMode = !darkMode;
 
             if (darkMode) {
@@ -93,8 +94,6 @@ public class HeaderView extends JPanel {
             } else {
                 modeIcon.setButtonIcon(Ionicons4IOS.SUNNY);
             }
-
-            return null;
         });
         homeNavigation.addMouseListener(new MouseAdapter() {
             @Override
