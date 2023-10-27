@@ -95,7 +95,7 @@ public class TextField extends JPanel {
     }
 
     protected void handleChange() {
-        if (field.hasFocus() && field.getText().compareTo(value) != 0) {
+        if (field.hasFocus()) {
             value = field.getText().trim();
         }
         if (onChangeCallBack != null) {

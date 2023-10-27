@@ -10,10 +10,9 @@ import java.awt.event.*;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
-import java.util.function.Function;
 
 public class Button extends JButton {
-    protected Function<?, ?> onClickCallBack;
+
     protected ThemeManager theme = ThemeManager.getInstance();
     protected ButtonSize size;
     protected int borderRadius;
@@ -22,12 +21,16 @@ public class Button extends JButton {
     private Color background;
     private Color foreground;
 
+    /**
+     * Creates a generic button
+     */
     public Button() {
         this.setText("Button");
         size = ButtonSize.NORMAL;
         addListener();
         setProps();
     }
+
 
     public Button(String text, ButtonSize size) {
         this.size = size;
@@ -63,7 +66,7 @@ public class Button extends JButton {
             @Override
             public void mousePressed(MouseEvent e) {
                 setBackground(background.brighter());
-                handleClick();
+//                handleClick();
 
             }
 
@@ -89,7 +92,7 @@ public class Button extends JButton {
             public void keyPressed(KeyEvent e) {
                 if (hasFocus && (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_SPACE)) {
                     setBackground(background.brighter());
-                    handleClick();
+//                    handleClick();
 
                 }
                 super.keyPressed(e);
@@ -118,13 +121,13 @@ public class Button extends JButton {
         });
 
     }
-
-
-    protected void handleClick() {
-        if (onClickCallBack != null) {
-            onClickCallBack.apply(null);
-        }
-    }
+//
+//
+//    protected void handleClick() {
+//        if (onClickCallBack != null) {
+//            onClickCallBack.apply(null);
+//        }
+//    }
 
     protected void handleButtonSizing() {
         switch (size) {
@@ -151,9 +154,9 @@ public class Button extends JButton {
         }
     }
 
-    public void onClick(Function onClick) {
-        this.onClickCallBack = onClick;
-    }
+//    public void onClick(Function onClick) {
+//        this.onClickCallBack = onClick;
+//    }
 
     private void setProps() {
         handleButtonSizing();
@@ -251,5 +254,15 @@ public class Button extends JButton {
     public void setButtonIcon(Ikon icon) {
         this.setIcon(FontIcon.of(icon, 24, theme.getCurrentScheme().getNeutralLight()));
     }
+
+//    @Override
+//    public void onChange(Object field) {
+//
+//    }
+//
+//    @Override
+//    public void onBlur(Object field) {
+//
+//    }
 }
 

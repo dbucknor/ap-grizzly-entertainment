@@ -30,7 +30,6 @@ public class LoadScreen extends JPanel {
         initComponents();
         addListeners();
         addComponentsToPanel();
-
         setProps();
     }
 
@@ -44,7 +43,6 @@ public class LoadScreen extends JPanel {
         lbl2.setFont(new Font("Montserrat Light", Font.PLAIN, 28));
         lbl1.setForeground(theme.getCurrentScheme().getNeutralLight());
         lbl2.setForeground(theme.getCurrentScheme().getNeutralLight());
-
     }
 
     private void addListeners() {
@@ -57,7 +55,6 @@ public class LoadScreen extends JPanel {
                 spinner.setImage(spinner.getImage().getScaledInstance(w / 4, h / 4, Image.SCALE_DEFAULT));
                 loadSpinner.setIcon(spinner);
                 loadSpinner.setPreferredSize(new Dimension(w / 4, h / 4));
-
 
                 logoPanel.setIcon(new ImageIcon(logo.getScaledInstance(w, h, Image.SCALE_SMOOTH)));
                 logoPanel.setPreferredSize(new Dimension(w, h));
@@ -98,8 +95,6 @@ public class LoadScreen extends JPanel {
     }
 
     private void setProps() {
-        System.out.println("herrrreee");
-        //this.setBackground(theme.getPrimary());
         this.setMinimumSize(new Dimension(800, 600));
         this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         this.setMaximumSize(new Dimension(2160, 1440));
