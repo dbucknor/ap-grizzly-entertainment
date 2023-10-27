@@ -3,7 +3,7 @@ USE RentalSystemDB;
 
 CREATE TABLE IF NOT EXISTS Equipment
 (
-    `equipmentId`       VARCHAR(50),
+    `id`                VARCHAR(50),
     `description`       text(350),
     `condition`         VARCHAR(50),
     `name`              VARCHAR(80),
@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS Equipment
     `rentalStatus`      VARCHAR(16),
     `type`              VARCHAR(24),
     `price`             DOUBLE(16, 2),
-    `rentBy`            VARCHAR(16),
-    `nextAvailableDate` VARCHAR(50),
-    PRIMARY KEY (`equipmentId`)
+    `rentedPer`         VARCHAR(16),
+    `nextAvailableDate` DATETIME,
+    PRIMARY KEY (`id`)
 );
 
 CREATE TABLE IF NOT EXISTS Customer
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS InvoiceItem
     rentalEndDate   DATE,
     PRIMARY KEY (`invoiceDetailId`),
     FOREIGN KEY (invoiceId) REFERENCES Invoices (invoiceId),
-    FOREIGN KEY (equipmentId) REFERENCES Equipment (equipmentId)
+    FOREIGN KEY (equipmentId) REFERENCES Equipment (id)
 );
 
 CREATE TABLE IF NOT EXISTS Messages
@@ -84,3 +84,20 @@ CREATE TABLE IF NOT EXISTS RentalRequests
     FOREIGN KEY (approvedBy) REFERENCES Employee (staffId)
 );
 
+CREATE TABLE MaintenanceLog
+(
+    timestamp   DOUBLE,
+    date        DATETIME,
+    equipmentId VARCHAR(50),
+    `condition` VARCHAR(16),
+    details     VARCHAR(350),
+    PRIMARY KEY (timestamp)
+);
+
+create table User
+(
+    email    VARCHAR(50),
+    id       VARCHAR(50),
+    password VARCHAR(16),
+    type     VARCHAR(16)
+);
