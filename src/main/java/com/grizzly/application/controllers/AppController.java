@@ -4,7 +4,7 @@ import com.grizzly.application.theme.ColorScheme;
 import com.grizzly.application.theme.FontLoader;
 import com.grizzly.application.theme.FontLoaderException;
 import com.grizzly.application.theme.ThemeManager;
-import com.grizzly.application.views.MainWindow;
+import com.grizzly.application.views.screens.MainWindow;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
@@ -19,7 +19,7 @@ public class AppController {
     public AppController() {
         themeManager = ThemeManager.getInstance();
         setTheme();
-        mainWindow = new MainWindow();
+        mainWindow = MainWindow.getInstance();
     }
 
     //set up theme
