@@ -4,6 +4,7 @@ import com.grizzly.application.models.User;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class AuthService implements IAuth<User> {
     private User user = null;
@@ -30,12 +31,12 @@ public class AuthService implements IAuth<User> {
 
     @Override
     public void setLoggedInUser(User user) {
-        System.out.println(
-                "should update"
-        );
         this.user = user;
-        this.user.setLoggedIn(true);
-        System.out.println(this.user);
+
+        if (user != null) {
+            this.user.setLoggedIn(true);
+        }
+
         updateListeners();
     }
 
@@ -49,8 +50,10 @@ public class AuthService implements IAuth<User> {
     @Override
     public User logIn(String email, String password) throws AuthException {
         try {
-            User usr = crudService.findByEmail(email);
-            System.out.println(usr);
+            List<User> results = crudService.readWhere((session -> new CombinedQuery<User>("SELECT u FROM User u")
+                    .where("u.email", "=:email", email).getQuery(session)));
+
+            User usr = results.isEmpty() ? null : results.get(0);
 
             if (usr != null) {
                 if (usr.getPassword().compareTo(password) != 0) {
@@ -71,14 +74,10 @@ public class AuthService implements IAuth<User> {
 
     private void updateListeners() {
         ArrayList<AuthChangedListener<User>> changedListeners = new ArrayList<>(listeners);
-        System.out.println("1 S: " + listeners.size());
         for (AuthChangedListener<User> listener : changedListeners
         ) {
-            System.out.println("2");
             if (listener != null) {
                 listener.onAuthChanged(user);
-                System.out.println(Arrays.toString(user.getClass().getDeclaredFields()));
-               
             }
         }
     }

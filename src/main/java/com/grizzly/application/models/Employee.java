@@ -1,83 +1,80 @@
 package com.grizzly.application.models;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
-public class Employee implements Serializable {
-	private static Object employee;
-	public String staffID;
-	public String firstName;
-	public String lastName;
-	public String phoneNumber;
-	public String password;
-	
-	public Employee() {
-		this.staffID="";
-		this.firstName="";
-		this.lastName="";
-		this.phoneNumber="";
-		this.password="";
-	}
-	public Employee(String staffID, String firstName, String lastName, String address, String phoneNumber,String password) {
-		this.staffID=staffID;
-		this.firstName=firstName;
-		this.lastName=lastName;
-		this.phoneNumber=phoneNumber;
-		this.password=password;
-	}
-	public Employee(String staffID, String firstName,String lastName) {
-		this(staffID,firstName,lastName,"","","");
-	}
-	public Employee(Employee emp) {
-		this.staffID=emp.staffID;
-		this.firstName=emp.firstName;
-		this.lastName=emp.lastName;
-		this.phoneNumber=emp.phoneNumber;
-		this.password=emp.password;
-	}
-	public String getStaffID() {
-		return staffID;
-	}
-	public void getStaffID(String staffID) {
-		this.staffID=staffID;
-	}
-	public String getFirstName(){
-		return firstName;
-	}
-	public void setFirstName(String firstName) {
-		this.firstName=firstName;
-	}
-	public String getLastName() {
-		return lastName;
-	}
-	public void setLastName(String lastName) {
-		this.lastName=lastName;
-	}
+import com.grizzly.application.models.enums.UserType;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
+import javax.persistence.*;
+import java.util.List;
+import java.util.Set;
 
-	public String getPhoneNumber() {
-		return phoneNumber;
-	}
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber=phoneNumber;
-	}
-	public String getPassword() {
-		return password;
-	}
-	public void setPassword(String password) {
-		this.password=password;
-	}
-	public String toString() {
-		return("StaffID: " + staffID + "First Name: " + firstName + "Last Name: " + lastName + "Phone Number: " + phoneNumber);
-	}
-	public static void main(String[]args) {
-		try (FileOutputStream fileOut = new FileOutputStream("Customer.ser");
-	        ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
-			out.writeObject(employee);
-	        System.out.println("Customer object has been serialized to Customer.ser");
-	    } catch (IOException e) {
-	    	e.printStackTrace();
-	    }
-	}
+@Entity(name = "Employee")
+@Table(name = "Employee")
+@PrimaryKeyJoinColumn(name = "userId")
+@Inheritance(strategy = InheritanceType.JOINED)
+public class Employee extends User {
+    @Column(name = "staffId")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String staffId;
+
+    //    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    private Set<RentalRequest> approvedRequests;
+
+    public Employee() {
+        this.staffId = "";
+    }
+
+    public Employee(String userId, String staffId, String email, String password, String firstName, String lastName, boolean loggedIn, UserType accountType) {
+        super(userId, email, password, firstName, lastName, loggedIn, accountType);
+        this.staffId = staffId;
+        this.userId = userId;
+    }
+
+    public Employee(Employee emp) {
+        super(emp);
+        this.approvedRequests = emp.approvedRequests;
+        this.staffId = emp.staffId;
+        this.userId = emp.userId;
+    }
+
+    public String getStaffId() {
+        return staffId;
+    }
+
+    public void setStaffId(String staffID) {
+        this.staffId = staffID;
+    }
+
+    public Set<RentalRequest> getApprovedRequests() {
+        return approvedRequests;
+    }
+
+    public void setApprovedRequests(Set<RentalRequest> approvedRequests) {
+        this.approvedRequests = approvedRequests;
+    }
+
+    @Override
+    public String getUserId() {
+        return userId;
+    }
+
+    @Override
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "staffID='" + staffId + '\'' +
+                ", userId='" + userId + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", loggedIn=" + loggedIn +
+                ", type=" + accountType +
+                '}';
+    }
 }

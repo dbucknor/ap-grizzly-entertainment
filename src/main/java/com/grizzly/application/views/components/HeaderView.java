@@ -1,9 +1,11 @@
 package com.grizzly.application.views.components;
 
-import com.grizzly.application.views.MainWindow;
+import com.grizzly.application.views.screens.MainWindow;
 import com.grizzly.application.theme.ThemeManager;
+import com.grizzly.application.views.components.fields.Button;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.ionicons4.Ionicons4IOS;
+import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -25,7 +27,7 @@ public class HeaderView extends JPanel {
     JLabel lbl1, loadSpinner, lbl2, names;
     JPanel iconNavigation, homeNavigation;
     private boolean darkMode;
-    private Button accIcon, cartIcon, modeIcon, messageIcon;
+    private com.grizzly.application.views.components.fields.Button accIcon, cartIcon, modeIcon, messageIcon;
     protected ThemeManager theme = ThemeManager.getInstance();
     private final ClassLoader loader = HeaderView.class.getClassLoader();
 
@@ -54,9 +56,9 @@ public class HeaderView extends JPanel {
         lbl1.setForeground(theme.getCurrentScheme().getNeutralLight());
         lbl2.setForeground(theme.getCurrentScheme().getNeutralLight());
 
-        accIcon = new Button(FontAwesomeSolid.USER_CIRCLE);
-        cartIcon = new Button(Ionicons4IOS.CART);
-        messageIcon = new Button(Ionicons4IOS.CHATBUBBLES);
+        accIcon = new com.grizzly.application.views.components.fields.Button(FontAwesomeSolid.USER_CIRCLE);
+        cartIcon = new com.grizzly.application.views.components.fields.Button(Ionicons4IOS.CART);
+        messageIcon = new com.grizzly.application.views.components.fields.Button(Ionicons4IOS.CHATBUBBLES);
         modeIcon = new Button(Ionicons4IOS.SUNNY);
 
 
@@ -90,9 +92,9 @@ public class HeaderView extends JPanel {
             darkMode = !darkMode;
 
             if (darkMode) {
-                modeIcon.setButtonIcon(Ionicons4IOS.MOON);
+                modeIcon.setFontIcon(FontIcon.of(Ionicons4IOS.MOON, 24, theme.getCurrentScheme().getPrimary()));
             } else {
-                modeIcon.setButtonIcon(Ionicons4IOS.SUNNY);
+                modeIcon.setFontIcon(FontIcon.of(Ionicons4IOS.SUNNY, 24, theme.getCurrentScheme().getPrimary()));
             }
         });
         homeNavigation.addMouseListener(new MouseAdapter() {

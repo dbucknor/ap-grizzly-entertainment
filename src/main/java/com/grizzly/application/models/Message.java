@@ -1,41 +1,41 @@
 package com.grizzly.application.models;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import com.grizzly.application.models.enums.FormFieldType;
+import com.grizzly.application.models.interfaces.ITableEntity;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity(name = "Messages")
 @Table(name = "Messages")
-public class Message implements Serializable {
+public class Message implements ITableEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "messageId")
     private String messageId;
     @Column(name = "message")
     private String message;
-    @Column(name = "senderId")
-    private String senderId;
-    @Column(name = "date")
-    private LocalDateTime date;
-    @Column(name = "receiverId")
-    private String receiverId;
+    @Column(name = "sentDate")
+    private LocalDateTime sentDate;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "senderId", referencedColumnName = "userId")
+    private User sender;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "chatId")
+    private Chat chat;
 
     public Message() {
         message = null;
         messageId = null;
-        senderId = null;
-        date = null;
-        receiverId = null;
+        sentDate = null;
     }
 
-    public Message(String messageId, String message, String senderId, LocalDateTime date, String receiverId) {
+    public Message(String messageId, String message, LocalDateTime sentDate) {
         this.messageId = messageId;
         this.message = message;
-        this.senderId = senderId;
-        this.date = date;
-        this.receiverId = receiverId;
+        this.sentDate = sentDate;
     }
 
     public String getMessageId() {
@@ -54,38 +54,64 @@ public class Message implements Serializable {
         this.message = message;
     }
 
-    public String getSenderId() {
-        return senderId;
+    public LocalDateTime getSentDate() {
+        return sentDate;
     }
 
-    public void setSenderId(String senderId) {
-        this.senderId = senderId;
+    public void setSentDate(LocalDateTime date) {
+        this.sentDate = date;
     }
 
-    public LocalDateTime getDate() {
-        return date;
+    public User getSender() {
+        return sender;
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+    public void setSender(User sender) {
+        this.sender = sender;
     }
 
-    public String getReceiverId() {
-        return receiverId;
-    }
-
-    public void setReceiverId(String receiverId) {
-        this.receiverId = receiverId;
-    }
 
     @Override
     public String toString() {
         return "Message{" +
                 "messageId='" + messageId + '\'' +
                 ", message='" + message + '\'' +
-                ", senderId='" + senderId + '\'' +
-                ", date=" + date +
-                ", receiverId='" + receiverId + '\'' +
+                ", date=" + sentDate +
                 '}';
+    }
+
+    public Chat getChat() {
+        return chat;
+    }
+
+    public void setChat(Chat chat) {
+        this.chat = chat;
+    }
+
+    @Override
+    public Object[] getValues() {
+        return new Object[]{messageId, sender.getUserId(), message, sentDate};
+    }
+
+    @Override
+    public String[] getTableTitles() {
+        return new String[]{"Message Id:", "Sender Id:", "Receiver Id:", "Message:", "Sent Date:"};
+    }
+
+//    @Override
+//    public FieldConfig[] getFieldConfigs() {
+////        return new FieldConfig[]{
+////                new FieldConfig(String.class, "setMessageId", "Message Id", FormFieldType.TEXT, true),
+////                new FieldConfig(String.class, "setSenderId", "Sender Id:", FormFieldType.TEXT),
+////                new FieldConfig(String.class, "setReceiverId", "Receiver Id:", FormFieldType.TEXT),
+////                new FieldConfig(String.class, "setMessage", "Message:", FormFieldType.TEXT),
+////                new FieldConfig(String.class, "setSentDate", "Sent Date:", FormFieldType.TEXT),
+////        };
+//        return null;
+//    }
+
+    @Override
+    public TableConfig createEntityTableCfg() {
+        return null;
     }
 }

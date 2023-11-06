@@ -1,103 +1,151 @@
 CREATE DATABASE IF NOT EXISTS RentalSystemDB;
 USE RentalSystemDB;
 
-CREATE TABLE IF NOT EXISTS Equipment
+CREATE TABLE Equipment
 (
-    `id`                VARCHAR(50),
-    `description`       text(350),
-    `condition`         VARCHAR(50),
-    `name`              VARCHAR(80),
-    `category`          VARCHAR(50),
-    `rentalStatus`      VARCHAR(16),
-    `type`              VARCHAR(24),
-    `price`             DOUBLE(16, 2),
-    `rentedPer`         VARCHAR(16),
-    `nextAvailableDate` DATETIME,
-    PRIMARY KEY (`id`)
+    equipmentId       VARCHAR(50)                                                  NOT NULL,
+    name              TINYTEXT                                                     NOT NULL,
+    category          VARCHAR(50),
+    description       MEDIUMTEXT                                                   NOT NULL,
+    image             MEDIUMBLOB,
+    `condition`       ENUM ('EXCELLENT', 'GOOD', 'NEEDS_REPAIR', 'OUT_OF_SERVICE') NOT NULL,
+    rentalStatus      ENUM ('AVAILABLE', 'RENTED')                                 NOT NULL,
+    type              VARCHAR(150),
+    price             DOUBLE(30, 2)                                                NOT NULL,
+    rentedPer         ENUM ('HOUR', 'DAY', 'WEEK', 'MONTH')                        NOT NULL,
+    nextAvailableDate DATETIME,
+    PRIMARY KEY (equipmentId)
 );
 
-CREATE TABLE IF NOT EXISTS Customer
+CREATE TABLE Sound
 (
-    `customerId`  VARCHAR(50),
-    `firstname`   VARCHAR(50),
-    `lastName`    VARCHAR(50),
-    `address`     VARCHAR(80),
-    `phoneNumber` VARCHAR(10),
-    `password`    VARCHAR(16),
-    `imageUrl`    MEDIUMBLOB,
-    PRIMARY KEY (`customerId`)
+    equipmentId    VARCHAR(50)   NOT NULL,
+    wattage        DOUBLE(10, 2) NOT NULL,
+    inputVoltage   VARCHAR(20)   NOT NULL,
+    amplifierClass VARCHAR(10),
+    peakDecibel    DOUBLE(10, 2),
+    FOREIGN KEY (`equipmentId`) REFERENCES Equipment (equipmentId)
 );
 
-CREATE TABLE IF NOT EXISTS Employee
+CREATE TABLE Stage
 (
-    `staffId`     VARCHAR(50),
-    `firstname`   VARCHAR(50),
-    `lastName`    VARCHAR(50),
-    `address`     VARCHAR(80),
-    `phoneNumber` VARCHAR(10),
-    `imageUrl`    VARCHAR(150),
-    `password`    VARCHAR(16),
-    PRIMARY KEY (`staffId`)
+    equipmentId VARCHAR(50)   NOT NULL,
+    length      DOUBLE(10, 2) NOT NULL,
+    width       DOUBLE(10, 2) NOT NULL,
+    height      DOUBLE(10, 2) NOT NULL,
+    FOREIGN KEY (equipmentId) REFERENCES Equipment (equipmentId)
 );
 
-CREATE TABLE IF NOT EXISTS Invoices
+CREATE TABLE Light
 (
-    `invoiceId`   INT AUTO_INCREMENT,
-    `customerId`  INT,
-    `invoiceDate` DATE,
-    `totalPrice`  DECIMAL(10, 2),
-    PRIMARY KEY (`invoiceId`)
+    equipmentId VARCHAR(50)   NOT NULL,
+    luminosity  INT(10)       NOT NULL,
+    wattage     DOUBLE(10, 2) NOT NULL,
+    voltage     VARCHAR(20)   NOT NULL,
+    FOREIGN KEY (equipmentId) REFERENCES Equipment (equipmentId)
 );
 
-CREATE TABLE IF NOT EXISTS InvoiceItem
+CREATE TABLE Power
 (
-    invoiceDetailId INT AUTO_INCREMENT,
-    invoiceId       INT,
-    equipmentId     VARCHAR(50),
-    quantity        INT,
-    rentalStartDate DATE,
-    rentalEndDate   DATE,
-    PRIMARY KEY (`invoiceDetailId`),
-    FOREIGN KEY (invoiceId) REFERENCES Invoices (invoiceId),
-    FOREIGN KEY (equipmentId) REFERENCES Equipment (id)
+    equipmentId   VARCHAR(50)   NOT NULL,
+    outputPower   DOUBLE(10, 2) NOT NULL,
+    outputVoltage VARCHAR(20)   NOT NULL,
+    phase         INT(10)       NOT NULL,
+    fuelSource    VARCHAR(100)  NOT NULL,
+    FOREIGN KEY (equipmentId) REFERENCES Equipment (equipmentId)
 );
 
-CREATE TABLE IF NOT EXISTS Messages
+CREATE TABLE User
 (
-    messageID  VARCHAR(50),
-    message    LONGTEXT,
-    senderId   VARCHAR(50),
-    date       DATETIME,
-    receiverId VARCHAR(50)
+    userId      VARCHAR(50) NOT NULL,
+    firstName   VARCHAR(50) NOT NULL,
+    lastName    VARCHAR(50) NOT NULL,
+    email       VARCHAR(50),
+    password    VARCHAR(24),
+    accountType ENUM ('CUSTOMER', 'EMPLOYEE'),
+    PRIMARY KEY (userId),
+    UNIQUE (email)
 );
 
-CREATE TABLE IF NOT EXISTS RentalRequests
+CREATE TABLE Customer
 (
-    requestId   INT,
-    requestDate DATETIME,
-    customerId  VARCHAR(50),
-    approved    BOOLEAN,
-    approvedBy  VARCHAR(50),
-    PRIMARY KEY (requestId),
-    FOREIGN KEY (customerId) REFERENCES Customer (customerId),
-    FOREIGN KEY (requestId) REFERENCES Invoices (invoiceId),
-    FOREIGN KEY (approvedBy) REFERENCES Employee (staffId)
+    customerId  VARCHAR(50) NOT NULL,
+    userId      VARCHAR(50) NOT NULL,
+    address     TINYTEXT    NOT NULL,
+    phoneNumber VARCHAR(10) NOT NULL,
+    FOREIGN KEY (userId) REFERENCES User (userId)
 );
 
-CREATE TABLE MaintenanceLog
+CREATE TABLE Employee
 (
-    timestamp   DOUBLE,
-    date        DATETIME,
-    equipmentId VARCHAR(50),
-    `condition` VARCHAR(16),
-    details     VARCHAR(350),
-    PRIMARY KEY (timestamp)
+    userId  VARCHAR(50) NOT NULL,
+    staffId VARCHAR(50) NOT NULL,
+    FOREIGN KEY (userId) REFERENCES User (userId)
 );
 
-create table User
+CREATE TABLE Invoice
 (
-    email    VARCHAR(50),
-    id       VARCHAR(50),
-    password VARCHAR(16),
-    type     VARCHAR(16)
+    invoiceId       INT(200) AUTO_INCREMENT    NOT NULL,
+    customerId      VARCHAR(50),
+    invoiceDate     DATETIME                   NOT NULL,
+    discount        DOUBLE(30, 2)              NOT NULL,
+    transportCost   DOUBLE(30, 2)              NOT NULL,
+    totalPrice      DOUBLE(50, 2)              NOT NULL,
+    deliveryAddress VARCHAR(300),
+    deliveryOption  ENUM ('DELIVER', 'PICKUP') NOT NULL,
+    PRIMARY KEY (invoiceId)
 );
+
+CREATE TABLE InvoiceItem
+(
+    invoiceItemId   INT(200) AUTO_INCREMENT NOT NULL,
+    invoiceId       INT(200)                NOT NULL,
+    equipmentId     VARCHAR(50)             NOT NULL,
+    quantity        INT(100)                NOT NULL,
+    rentalStartDate DATETIME                NOT NULL,
+    rentalEndDate   DATETIME                NOT NULL,
+    totalPrice      DOUBLE(30, 2)           NOT NULL,
+    PRIMARY KEY (invoiceItemId),
+    FOREIGN KEY (invoiceId) REFERENCES Invoice (invoiceId),
+    FOREIGN KEY (equipmentId) REFERENCES Equipment (equipmentId)
+);
+
+CREATE TABLE Chat
+(
+    chatId VARCHAR(50) NOT NULL,
+    PRIMARY KEY (chatId)
+);
+
+CREATE TABLE Messages
+(
+    messageId VARCHAR(50) NOT NULL,
+    chatId    VARCHAR(50) NOT NULL,
+    message   LONGTEXT,
+    senderId  VARCHAR(50) NOT NULL,
+    sentDate  DATETIME,
+    PRIMARY KEY (messageId),
+    FOREIGN KEY (chatId) REFERENCES Chat (chatId)
+);
+
+CREATE TABLE RentalRequests
+(
+    requestId    INT(200) NOT NULL,
+    invoiceId    INT(200) NOT NULL,
+    requestDate  DATETIME NOT NULL,
+    customerId   VARCHAR(50),
+    approved     BOOLEAN,
+    approvedBy   VARCHAR(50),
+    approvedDate DATETIME,
+    FOREIGN KEY (invoiceId) REFERENCES Invoice (invoiceId),
+    PRIMARY KEY (requestId)
+);
+
+# CREATE TABLE MaintenanceLog
+# (
+#     timestamp   DOUBLE,
+#     date        DATETIME,
+#     equipmentId VARCHAR(50),
+#     `condition` VARCHAR(16),
+#     details     VARCHAR(350),
+#     PRIMARY KEY (timestamp)
+# );

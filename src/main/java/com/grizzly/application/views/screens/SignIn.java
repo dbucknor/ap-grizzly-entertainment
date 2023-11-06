@@ -1,10 +1,14 @@
-package com.grizzly.application.views;
+package com.grizzly.application.views.screens;
 
+import com.grizzly.application.models.enums.ButtonSize;
+import com.grizzly.application.models.enums.UserType;
 import com.grizzly.application.services.AuthException;
 import com.grizzly.application.services.AuthService;
-import com.grizzly.application.views.components.*;
-import com.grizzly.application.views.components.Button;
-import com.grizzly.application.views.components.TextField;
+import com.grizzly.application.views.components.fields.Button;
+import com.grizzly.application.views.components.fields.SelectField;
+import com.grizzly.application.views.components.fields.TextField;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -22,17 +26,21 @@ import java.util.Objects;
 
 public class SignIn extends Screen {
     private TextField email, password;
-    private SelectField<String> loginType;
-    private Button button1, button2;
+    private SelectField<UserType> loginType;
+    private Button signInBtn, signUpBtn;
     private BufferedImage logo;
-    private JLabel lbl1, logoPanel, lbl2;
+    private JLabel lbl1, logoPanel;
     private JPanel formPanel;
     private final ClassLoader loader = SignIn.class.getClassLoader();
     private final AuthService authService;
+    private final Logger logger;
 
+    /**
+     * Create and initialize SignIn Screen
+     */
     public SignIn() {
         authService = AuthService.getInstance();
-
+        logger = LogManager.getLogger(SignIn.class);
         getImages();
     }
 
@@ -52,13 +60,12 @@ public class SignIn extends Screen {
         email = new TextField("Email:", null);
         password = new TextField("Password:", true);
 
-        button1 = new Button("Sign In", ButtonSize.EXTEND);
-        button2 = new Button("Sign Up", ButtonSize.EXTEND);
-        button2.setButtonColor(theme.getCurrentScheme().getAccent1(), theme.getCurrentScheme().getPrimary());
+        signInBtn = new Button("Sign In", ButtonSize.NORMAL);
+        signUpBtn = new Button("Sign Up", ButtonSize.NORMAL);
+        signUpBtn.setButtonColor(theme.getCurrentScheme().getAccent1(), theme.getCurrentScheme().getPrimary());
 
-        String[] options = {"Customer", "Employee"};
 
-        loginType = new SelectField<>(options, options[0], null);
+        loginType = new SelectField<>(UserType.values(), UserType.values()[0], null);
         super.initializeComponents();
     }
 
@@ -66,13 +73,14 @@ public class SignIn extends Screen {
     public void addComponents() {
         GridBagConstraints constraints = new GridBagConstraints();
 
-        constraints.insets = new Insets(10, 0, 5, 0);
+        constraints.insets = new Insets(10, 20, 5, 20);
 
         constraints.gridx = 0;
         constraints.gridy = 0;
         formPanel.add(logoPanel, constraints);
 
         constraints.insets = new Insets(5, 0, 10, 0);
+        constraints.weightx = 1;
 
         constraints.gridy = 1;
         formPanel.add(lbl1, constraints);
@@ -91,14 +99,12 @@ public class SignIn extends Screen {
         constraints.insets = new Insets(10, 0, 10, 0);
 
         constraints.gridy = 5;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(button1, constraints);
+        formPanel.add(signInBtn, constraints);
 
         constraints.insets = new Insets(10, 0, 50, 0);
 
         constraints.gridy = 6;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(button2, constraints);
+        formPanel.add(signUpBtn, constraints);
 
         container.setLayout(new FlowLayout());
         container.add(formPanel);
@@ -122,19 +128,26 @@ public class SignIn extends Screen {
             }
         });
 
+        /*
+         * Sign In
+         */
 
-        button1.addActionListener(new ActionListener() {
+        signInBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
                     authService.logIn(email.getValue(), password.getValue());
                 } catch (AuthException ex) {
-                    throw new RuntimeException(ex);
+                    logger.error("Sign In Error: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, "Error Signing in!\n " + ex.getMessage(), "Sign In Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
-        button2.addActionListener(new ActionListener() {
+        /*
+         * Switch to SignUp Screen
+         */
+        signUpBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 MainWindow.getMainLayout().show(MainWindow.getInstance().getContentPane(), "Sign-Up");

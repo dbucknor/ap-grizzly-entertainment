@@ -41,12 +41,24 @@ public class CRUDService<T extends Serializable, K extends Serializable> impleme
     }
 
     @Override
-    public void insert(T record) {
+    public void insert(T record) throws HibernateException {
+        Session session = HibernateSession.getSession();
+        Transaction transaction = null;
 
+        try {
+            assert session != null;
+            transaction = session.beginTransaction();
+            session.save(record);
+            transaction.commit();
+            session.close();
+        } catch (HibernateException he) {
+            logger.error(he.getMessage());
+            throw he;
+        }
     }
 
     @Override
-    public T read(K id) throws Exception {
+    public T read(K id) throws HibernateException {
         Session session = HibernateSession.getSession();
         Transaction transaction = null;
 
@@ -54,6 +66,7 @@ public class CRUDService<T extends Serializable, K extends Serializable> impleme
             assert session != null;
             transaction = session.beginTransaction();
             T obj = session.get(typeParameterClass, id);
+            System.out.println(obj);
             transaction.commit();
             session.close();
             return obj;
@@ -64,7 +77,20 @@ public class CRUDService<T extends Serializable, K extends Serializable> impleme
     }
 
     @Override
-    public T read(String query, List<?> paramters) throws Exception {
+    public T read(String query, List<?> paramters) throws HibernateException {
+//        Session session = HibernateSession.getSession();
+//        Transaction transaction = null;
+//
+//        try {
+//            assert session != null;
+//            transaction = session.beginTransaction();
+//            T obj = session.delete(read(id));
+//            transaction.commit();
+//            session.close();
+//        } catch (HibernateException he) {
+//            logger.error(he.getMessage());
+//            throw he;
+//        }
         return null;
     }
 
@@ -92,51 +118,133 @@ public class CRUDService<T extends Serializable, K extends Serializable> impleme
     }
 
     @Override
-    public List<T> readALL(String query, List<?> parameters) throws Exception {
-        List<String> s = Arrays.stream(query.split(" ")).filter((str) -> str.contains(":")).toList();
-        readWhere((session -> {
-            Query<T> q = session.createQuery(query);
-            int i = 1;
-            for (Object o : parameters
-            ) {
-                q.setParameter(i, o);
-            }
+    public List<T> readALL(String sql, List<?> parameters) throws HibernateException {
+        List<String> s = Arrays.stream(sql.split(" ")).filter((str) -> str.contains(":")).toList();
+        try {
+            return readWhere((session -> {
+                Query<T> q = session.createQuery(sql);
+                int i = 1;
+                for (Object o : parameters
+                ) {
+                    q.setParameter(i, o);
+                }
+                return q;
+            }));
+        } catch (HibernateException he) {
+            throw he;
+        }
 
-            return q;
-        }));
-        return null;
     }
 
-    public T findByEmail(String email) {
-        List<T> results = readWhere((session -> {
-            CombinedQuery<T> q = new CombinedQuery<>("SELECT u FROM User u");
-            return q.where("u.email", "=:email", email).get(session);
-        }));
-        logger.info(results.get(0));
-        if (results.isEmpty()) {
-            return null;
-        } else {
-            return results.get(0);
+
+    public List<T> readALL() throws HibernateException {
+        Session session = HibernateSession.getSession();
+        Transaction transaction = null;
+        try {
+            assert session != null;
+            transaction = session.beginTransaction();
+
+            Query<T> q = session.createQuery("SELECT t FROM " + typeParameterClass.getName() + " t");
+
+            List<T> obj = q.getResultList();
+            transaction.commit();
+            session.close();
+            return obj;
+        } catch (HibernateException he) {
+            logger.error(he.getMessage());
+            throw he;
         }
     }
 
-    @Override
-    public void update(K id) throws Exception {
+//    public T findByEmail(String email) {
+//        List<T> results = readWhere((session -> {
+//            CombinedQuery<T> q = new CombinedQuery<User>("SELECT u FROM User u");
+//            return q.where("u.email", "=:email", email).getQuery(session);
+//        }));
+//
+//        if (results.isEmpty()) {
+//            return null;
+//        } else {
+//            logger.info(results.get(0));
+//            return results.get(0);
+//        }
+//    }
 
+    @Override
+    public void update(T record) throws Exception {
+        Session session = HibernateSession.getSession();
+        Transaction transaction = null;
+
+        try {
+            assert session != null;
+            transaction = session.beginTransaction();
+            session.update(record);
+            transaction.commit();
+            session.close();
+        } catch (HibernateException he) {
+            logger.error(he.getMessage());
+            throw he;
+        }
     }
+
+//    @Override
+//    public void update(K id) throws Exception {
+//        Session session = HibernateSession.getSession();
+//        Transaction transaction = null;
+//
+//        try {
+//            assert session != null;
+//            transaction = session.beginTransaction();
+//            session.update(read(id));
+//            transaction.commit();
+//            session.close();
+//        } catch (HibernateException he) {
+//            logger.error(he.getMessage());
+//            throw he;
+//        }
+//    }
 
     @Override
     public void update(String query, List<?> paramters) throws Exception {
 
     }
 
-    @Override
-    public void delete(K id) throws Exception {
 
+    @Override
+    public void delete(K id) throws HibernateException {
+        Session session = HibernateSession.getSession();
+        Transaction transaction = null;
+
+        try {
+            assert session != null;
+            transaction = session.beginTransaction();
+            session.delete(read(id));
+            transaction.commit();
+            session.close();
+        } catch (HibernateException he) {
+            logger.error(he.getMessage());
+            throw he;
+        }
+    }
+
+    public void delete(K id, T record) throws HibernateException {
+        Session session = HibernateSession.getSession();
+        Transaction transaction = null;
+
+        try {
+            assert session != null;
+            transaction = session.beginTransaction();
+            session.delete(record);
+            transaction.commit();
+            session.close();
+        } catch (HibernateException he) {
+            logger.error(he.getMessage());
+            throw he;
+        }
     }
 
     @Override
-    public void delete(String query, List<?> paramters) throws Exception {
+    public void delete(String query, List<?> paramters) throws HibernateException {
 
     }
 
