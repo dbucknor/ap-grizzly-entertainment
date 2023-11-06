@@ -1,33 +1,47 @@
 package com.grizzly.application.models.equipment;
 
+import com.grizzly.application.models.Constraint;
+import com.grizzly.application.models.FieldConfig;
+import com.grizzly.application.models.TableConfig;
+import com.grizzly.application.models.interfaces.ITableEntity;
 import com.grizzly.application.models.enums.Condition;
+import com.grizzly.application.models.enums.RentalStatus;
 import com.grizzly.application.models.enums.RentedPer;
+import com.grizzly.application.models.enums.FormFieldType;
 
 import javax.persistence.*;
+import javax.swing.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity(name = "Equipment")
-@Table(name = "equipment")
-public class Equipment implements Serializable {
+@Table(name = "Equipment")
+@Inheritance(strategy = InheritanceType.JOINED)
+public class Equipment implements Serializable, ITableEntity {
     @Id
-    @Column(name = "id", unique = true)
-    protected String id;
+    @Column(name = "equipmentId")
+    protected String equipmentId;
 
     @Column(name = "name")
     protected String name;
+
+    @Column(name = "image")
+    @Transient
+    protected ImageIcon image;
     @Column(name = "description")
     protected String description;
+
+    @Enumerated(EnumType.STRING)
+    protected RentalStatus rentalStatus;
     @Column(name = "category")
     protected String category;
     @Column(name = "price")
-    protected float price;
+    protected Double price;
     @Column(name = "rentedPer")
     @Enumerated(EnumType.STRING)
     protected RentedPer rentedPer;
-    @OneToMany
+    @Transient
     protected List<MaintenanceLog> maintenanceLogs;
     @Column(name = "type")
     protected String type;
@@ -35,19 +49,20 @@ public class Equipment implements Serializable {
     protected LocalDateTime nextAvailableDate;
 
     public Equipment() {
-        id = "";
+        equipmentId = "";
         name = "";
         description = "";
         category = "";
-        price = 0.0f;
+        price = 0.0;
         type = "";
         nextAvailableDate = LocalDateTime.now();
         rentedPer = RentedPer.DAY;
+        rentalStatus = RentalStatus.AVAILABLE;
     }
 
-    public Equipment(String id, String name, String description, String category, float price,
-                     List<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvailableDate, RentedPer rentedPer) {
-        this.id = id;
+    public Equipment(String equipmentId, String name, String description, String category, Double price,
+                     List<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvailableDate, RentedPer rentedPer, RentalStatus rentalStatus) {
+        this.equipmentId = equipmentId;
         this.name = name;
         this.description = description;
         this.category = category;
@@ -56,10 +71,13 @@ public class Equipment implements Serializable {
         this.type = type;
         this.nextAvailableDate = nextAvailableDate;
         this.rentedPer = rentedPer;
+        this.rentalStatus = rentalStatus;
+
+
     }
 
     public Equipment(Equipment other) {
-        this.id = other.id;
+        this.equipmentId = other.equipmentId;
         this.name = other.name;
         this.description = other.description;
         this.category = other.category;
@@ -68,15 +86,16 @@ public class Equipment implements Serializable {
         this.type = other.type;
         this.nextAvailableDate = other.nextAvailableDate;
         this.rentedPer = other.rentedPer;
+        this.rentalStatus = other.rentalStatus;
     }
 
 
-    public String getId() {
-        return id;
+    public String getEquipmentId() {
+        return equipmentId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setEquipmentId(String id) {
+        this.equipmentId = id;
     }
 
     public String getName() {
@@ -103,12 +122,16 @@ public class Equipment implements Serializable {
         this.category = category;
     }
 
-    public float getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public void setPrice(Number price) {
+        this.price = price.doubleValue();
     }
 
     public List<MaintenanceLog> getMaintenanceLogs() {
@@ -131,10 +154,9 @@ public class Equipment implements Serializable {
         return nextAvailableDate;
     }
 
-    public void setNextAvailableDate(LocalDateTime nextAvaliableDate) {
-        this.nextAvailableDate = nextAvaliableDate;
+    public void setNextAvailableDate(LocalDateTime nextAvailableDate) {
+        this.nextAvailableDate = nextAvailableDate;
     }
-
 
     public MaintenanceLog getLastMaintenanceLog() {
         return maintenanceLogs.get(maintenanceLogs.size() - 1);
@@ -152,11 +174,96 @@ public class Equipment implements Serializable {
         this.rentedPer = rentedPer;
     }
 
-    @Override
-    public String toString() {
-        return "Equipment [id=" + id + ", name=" + name + ", description=" + description + ", category=" + category
-                + ", price=" + price + ", rentedPer=" + rentedPer + ", type=" + type + ", nextAvailableDate=" + nextAvailableDate + "]";
+    public void setRentedPer(String rentedPer) {
+        this.rentedPer = RentedPer.valueOf(rentedPer);
+    }
+
+    public RentalStatus getRentalStatus() {
+        return rentalStatus;
+    }
+
+    public void setRentalStatus(RentalStatus rentalStatus) {
+        this.rentalStatus = rentalStatus;
+    }
+
+    public void setRentalStatus(String rentalStatus) {
+        this.rentalStatus = RentalStatus.valueOf(rentalStatus);
     }
 
 
+    @Override
+    public String toString() {
+        return "Equipment{" +
+                "id='" + equipmentId + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", rentalStatus=" + rentalStatus +
+                ", category='" + category + '\'' +
+                ", price=" + price +
+                ", rentedPer=" + rentedPer +
+                ", maintenanceLogs=" + maintenanceLogs +
+                ", type='" + type + '\'' +
+                ", nextAvailableDate=" + nextAvailableDate +
+                '}';
+    }
+
+    private void cfgTable() {
+
+    }
+
+    @Override
+    public Object[] getValues() {
+        return new Object[]{equipmentId, name, description, category, price, type, rentedPer, rentalStatus, nextAvailableDate};
+    }
+
+    @Override
+    public String[] getTableTitles() {
+        return new String[]{"Id", "Name", "Description", "Category", "Price", "Type", "Rented Per", "Rental Status", "Next Available Date"};
+    }
+
+    @Override
+    public TableConfig createEntityTableCfg() {
+
+        List<FieldConfig> fcs = configFields();
+
+        return new TableConfig(getTableTitles(), null, fcs);
+    }
+
+    protected List<FieldConfig> configFields() {
+        List<FieldConfig> fcs = new ArrayList<>();
+
+        FieldConfig id = new FieldConfig(String.class, "setEquipmentId", "getEquipmentId", "Id", FormFieldType.TEXT, true);
+        id.addConstraint(new Constraint(Constraint.NOT_NULL, "Id cannot be empty!"));
+        fcs.add(id);
+
+        FieldConfig name = new FieldConfig(String.class, "setName", "getName", "Name:", FormFieldType.TEXT);
+        name.addConstraint(new Constraint(Constraint.NOT_NULL, "Name cannot be empty!"));
+        fcs.add(name);
+
+        FieldConfig description = new FieldConfig(String.class, "setDescription", "getDescription", "Description:", FormFieldType.LONGTEXT, 350.0, 0.0);
+        fcs.add(description);
+
+        FieldConfig category = new FieldConfig(String.class, "setCategory", "getCategory", "Category:", FormFieldType.TEXT);
+        fcs.add(category);
+
+        FieldConfig price = new FieldConfig(Double.class, "setPrice", "getPrice", "Price:", FormFieldType.NUMBER, null, 0.0);
+        price.addConstraint(new Constraint(Constraint.GREATER, 0, "Value must be greater than 0!"));
+        fcs.add(price);
+
+        FieldConfig type = new FieldConfig(String.class, "setType", "getType", "Type:", FormFieldType.TEXT);
+        type.addConstraint(new Constraint(Constraint.NOT_NULL, "Type cannot be empty!"));
+        fcs.add(type);
+
+        FieldConfig rentedPer = new FieldConfig(RentedPer.class, "setRentedPer", "getRentedPer", "Rented Per:", FormFieldType.SELECT, RentedPer.values());
+        fcs.add(rentedPer);
+
+        FieldConfig status = new FieldConfig(RentalStatus.class, "setRentalStatus", "getRentalStatus", "Rental Status:", FormFieldType.SELECT, RentalStatus.values());
+        fcs.add(status);
+
+        FieldConfig nextAvailable = new FieldConfig(String.class, "setNextAvailableDate", "getNextAvailableDate", "Next Available Date:", FormFieldType.DATE);
+        nextAvailable.addConstraint(new Constraint(Constraint.NOT_NULL, "Type cannot be empty!"));
+        fcs.add(nextAvailable);
+
+        return fcs;
+    }
 }
