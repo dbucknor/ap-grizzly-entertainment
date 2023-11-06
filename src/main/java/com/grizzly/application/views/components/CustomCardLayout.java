@@ -1,4 +1,4 @@
-package com.grizzly.application.views;
+package com.grizzly.application.views.components;
 
 import javax.swing.*;
 import java.awt.*;

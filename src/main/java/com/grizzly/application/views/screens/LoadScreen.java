@@ -1,7 +1,7 @@
-package com.grizzly.application.views;
+package com.grizzly.application.views.screens;
 
 import com.grizzly.application.theme.ThemeManager;
-import com.grizzly.application.views.components.TextField;
+import com.grizzly.application.views.components.fields.TextField;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
