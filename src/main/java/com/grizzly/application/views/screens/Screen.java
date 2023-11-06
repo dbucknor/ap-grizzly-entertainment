@@ -1,8 +1,8 @@
-package com.grizzly.application.views;
+package com.grizzly.application.views.screens;
 
+import com.grizzly.application.models.interfaces.IView;
 import com.grizzly.application.theme.ThemeManager;
 import com.grizzly.application.views.components.HeaderView;
-import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
