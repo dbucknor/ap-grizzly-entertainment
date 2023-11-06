@@ -1,11 +1,10 @@
-package com.grizzly.application.views;
+package com.grizzly.application.views.screens;
 
 import com.grizzly.application.models.User;
-import com.grizzly.application.models.enums.UserType;
 import com.grizzly.application.services.AuthChangedListener;
 import com.grizzly.application.services.AuthService;
 import com.grizzly.application.theme.ThemeManager;
-import com.grizzly.application.views.employee.EmployeeHome;
+import com.grizzly.application.views.components.CustomCardLayout;
 import com.grizzly.application.views.employee.EmployeeScreen;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +46,7 @@ public class MainWindow extends JFrame {
     }
 
     public static MainWindow getInstance() {
+        System.out.println(instance);
         if (instance == null) {
             instance = new MainWindow();
         }
@@ -69,9 +69,10 @@ public class MainWindow extends JFrame {
         mainLayout.addLayoutComponent(loadScreen, "Load-Screen");
         mainLayout.addLayoutComponent(signIn, "Sign-In");
         mainLayout.addLayoutComponent(customerHome, "Customer-Home");
-        mainLayout.addLayoutComponent(employeeScreen, "Employee-Home");
+        mainLayout.addLayoutComponent(employeeScreen, "Employee-Screen");
 
-        mainLayout.show(this.getContentPane(), "Load-Screen");
+//        mainLayout.show(this.getContentPane(), "Load-Screen");
+//        mainLayout.show(this.getContentPane(), "Employee-Screen");
 
         Timer timer = new Timer("timer");
         timer.schedule(new TimerTask() {
@@ -83,12 +84,14 @@ public class MainWindow extends JFrame {
     }
 
     private void setWindowProperties() {
-        this.setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
+        getImages();
+        
+//        this.setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setUndecorated(true);
+        this.setExtendedState(MAXIMIZED_BOTH);
+        this.setIconImage(logo);
         this.pack();
         this.setLocationRelativeTo(null);
-        this.setIconImage(logo);
         this.setVisible(true);
     }
 
@@ -100,9 +103,9 @@ public class MainWindow extends JFrame {
                     mainLayout.show(getContentPane(), "Sign-In");
                 } else {
                     if (mainLayout.isCurrentCard("Sign-In")) {
-                        switch (user.getType()) {
+                        switch (user.getAccountType()) {
                             case CUSTOMER -> mainLayout.show(getContentPane(), "Customer-Home");
-                            case EMPLOYEE -> mainLayout.show(getContentPane(), "Employee-Home");
+                            case EMPLOYEE -> mainLayout.show(getContentPane(), "Employee-Screen");
                             default -> mainLayout.show(getContentPane(), "Sign-In");
                         }
                     }

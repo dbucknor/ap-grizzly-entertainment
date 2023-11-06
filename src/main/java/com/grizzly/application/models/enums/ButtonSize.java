@@ -1,4 +1,4 @@
-package com.grizzly.application.views.components;
+package com.grizzly.application.models.enums;
 
 public enum ButtonSize {
     SMALL,

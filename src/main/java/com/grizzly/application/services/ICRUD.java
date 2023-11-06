@@ -19,7 +19,8 @@ public interface ICRUD<T, K> {
 
     public List<T> readALL(String query, List<?> paramters) throws Exception;
 
-    public void update(K id) throws Exception;
+
+    void update(T record) throws Exception;
 
     public void update(String query, List<?> paramters) throws Exception;
 

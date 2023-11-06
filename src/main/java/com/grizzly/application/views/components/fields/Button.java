@@ -1,25 +1,28 @@
-package com.grizzly.application.views.components;
+package com.grizzly.application.views.components.fields;
 
+import com.grizzly.application.models.enums.ButtonSize;
+import com.grizzly.application.models.interfaces.IView;
 import com.grizzly.application.theme.ThemeManager;
+import com.grizzly.application.views.components.RoundedComponent;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.swing.FontIcon;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 
 public class Button extends JButton {
 
     protected ThemeManager theme = ThemeManager.getInstance();
     protected ButtonSize size;
-    protected int borderRadius;
     protected boolean hasFocus = false;
     protected boolean outlined = false;
-    private Color background;
-    private Color foreground;
+    protected int borderRadius;
+
+    protected Color background;
+    protected Color foreground;
+    protected FontIcon icon;
+    protected int iconSize;
 
     /**
      * Creates a generic button
@@ -27,6 +30,7 @@ public class Button extends JButton {
     public Button() {
         this.setText("Button");
         size = ButtonSize.NORMAL;
+        setButtonColor(theme.getCurrentScheme().getPrimary(), theme.getCurrentScheme().getNeutralLight());
         addListener();
         setProps();
     }
@@ -34,6 +38,7 @@ public class Button extends JButton {
 
     public Button(String text, ButtonSize size) {
         this.size = size;
+        setButtonColor(theme.getCurrentScheme().getPrimary(), theme.getCurrentScheme().getNeutralLight());
         this.setText(text);
         addListener();
         setProps();
@@ -41,6 +46,7 @@ public class Button extends JButton {
 
     public Button(String text, Icon icon, ButtonSize size) {
         this.setText(text);
+        setButtonColor(theme.getCurrentScheme().getPrimary(), theme.getCurrentScheme().getNeutralLight());
         this.setIcon(icon);
         this.size = size;
         addListener();
@@ -49,7 +55,9 @@ public class Button extends JButton {
 
     public Button(Ikon icon) {
         this.setText("");
-        this.setButtonIcon(icon);
+        setButtonColor(theme.getCurrentScheme().getPrimary(), theme.getCurrentScheme().getNeutralLight());
+        this.icon = FontIcon.of(icon, 24, foreground);
+        this.setFontIcon(this.icon);
         this.size = ButtonSize.ICON;
         addListener();
         setProps();
@@ -60,30 +68,30 @@ public class Button extends JButton {
         this.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
                 setBackground(background.brighter());
-//                handleClick();
-
+                if (icon != null) {
+                    setIconColor(foreground.brighter().brighter());
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 setBackground(background);
-
+                if (icon != null) {
+                    setIconColor(foreground);
+                }
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
-
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-
             }
         });
 
@@ -93,7 +101,9 @@ public class Button extends JButton {
                 if (hasFocus && (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_SPACE)) {
                     setBackground(background.brighter());
 //                    handleClick();
-
+                    if (icon != null) {
+                        setIconColor(foreground.brighter().brighter());
+                    }
                 }
                 super.keyPressed(e);
             }
@@ -102,6 +112,9 @@ public class Button extends JButton {
             public void keyReleased(KeyEvent e) {
                 if (hasFocus && (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_SPACE)) {
                     setBackground(background);
+                    if (icon != null) {
+                        setIconColor(foreground);
+                    }
                 }
                 super.keyReleased(e);
             }
@@ -121,42 +134,64 @@ public class Button extends JButton {
         });
 
     }
-//
-//
-//    protected void handleClick() {
-//        if (onClickCallBack != null) {
-//            onClickCallBack.apply(null);
-//        }
-//    }
 
     protected void handleButtonSizing() {
         switch (size) {
             case SMALL -> {
                 borderRadius = 12;
                 this.setPreferredSize(new Dimension(75, 30));
+                this.setMinimumSize(new Dimension(75, 30));
+                this.setMaximumSize(new Dimension(75, 30));
                 this.setFont(new Font("Montserrat Regular", Font.PLAIN, 16));
             }
             case EXTEND -> {
                 borderRadius = 15;
                 this.setPreferredSize(new Dimension(Toolkit.getDefaultToolkit().getScreenSize().width, 40));
+                this.setMinimumSize(new Dimension(Toolkit.getDefaultToolkit().getScreenSize().width, 40));
+                this.setMaximumSize(new Dimension(Toolkit.getDefaultToolkit().getScreenSize().width, 40));
                 this.setFont(new Font("Montserrat Regular", Font.PLAIN, 18));
             }
             case ICON -> {
                 borderRadius = 15;
                 this.setPreferredSize(new Dimension(30, 30));
+                this.setMinimumSize(new Dimension(30, 30));
+                this.setMaximumSize(new Dimension(30, 30));
             }
             default -> {
                 borderRadius = 15;
                 this.setPreferredSize(new Dimension(250, 40));
+                this.setMinimumSize(new Dimension(250, 40));
+                this.setMaximumSize(new Dimension(250, 40));
                 this.setFont(new Font("Montserrat Regular", Font.PLAIN, 18));
 
             }
         }
     }
 
-//    public void onClick(Function onClick) {
-//        this.onClickCallBack = onClick;
-//    }
+    public void setButtonColor(Color background, Color foreground) {
+        this.foreground = foreground;
+        this.background = background;
+        this.setBackground(background);
+        this.setForeground(foreground);
+        setIconColor(foreground);
+        this.repaint();
+    }
+
+    public void setIconSize(int iconSize) {
+        if (this.icon == null) return;
+        this.iconSize = iconSize;
+        this.icon.setIconSize(iconSize);
+        this.setFontIcon(icon);
+        this.setMinimumSize(new Dimension(iconSize + 20, iconSize + 20));
+        this.setPreferredSize(new Dimension(iconSize + 20, iconSize + 20));
+        this.setMaximumSize(new Dimension(iconSize + 20, iconSize + 20));
+    }
+
+    public void setIconColor(Color color) {
+        if (this.icon == null) return;
+        this.icon.setIconColor(color);
+        this.setFontIcon(icon);
+    }
 
     private void setProps() {
         handleButtonSizing();
@@ -173,70 +208,14 @@ public class Button extends JButton {
         this.setVisible(true);
     }
 
-
     @Override
-    protected void paintComponent(Graphics grphcs) {
-        Graphics2D g2 = (Graphics2D) grphcs.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(getBackground());
-        Area area = new Area(createRoundTopLeft());
-        area.intersect(new Area(createRoundTopRight()));
-        area.intersect(new Area(createRoundBottomLeft()));
-        area.intersect(new Area(createRoundBottomRight()));
-        g2.fill(area);
-        g2.dispose();
-        super.paintComponent(grphcs);
+    public void paint(Graphics g) {
+        super.paint(RoundedComponent.paintCorners(g, borderRadius, this));
     }
 
-    private Shape createRoundTopLeft() {
-        int width = getWidth();
-        int height = getHeight();
-        int roundX = Math.min(width, borderRadius);
-        int roundY = Math.min(height, borderRadius);
-        Area area = new Area(new RoundRectangle2D.Double(0, 0, width, height, roundX, roundY));
-        area.add(new Area(new Rectangle2D.Double((double) roundX / 2, 0, width - (double) roundX / 2, height)));
-        area.add(new Area(new Rectangle2D.Double(0, (double) roundY / 2, width, height - (double) roundY / 2)));
-        return area;
-    }
-
-    private Shape createRoundTopRight() {
-        int width = getWidth();
-        int height = getHeight();
-        int roundX = Math.min(width, borderRadius);
-        int roundY = Math.min(height, borderRadius);
-        Area area = new Area(new RoundRectangle2D.Double(0, 0, width, height, roundX, roundY));
-        area.add(new Area(new Rectangle2D.Double(0, 0, width - (double) roundX / 2, height)));
-        area.add(new Area(new Rectangle2D.Double(0, (double) roundY / 2, width, height - (double) roundY / 2)));
-        return area;
-    }
-
-    private Shape createRoundBottomLeft() {
-        int width = getWidth();
-        int height = getHeight();
-        int roundX = Math.min(width, borderRadius);
-        int roundY = Math.min(height, borderRadius);
-        Area area = new Area(new RoundRectangle2D.Double(0, 0, width, height, roundX, roundY));
-        area.add(new Area(new Rectangle2D.Double(roundX / 2, 0, width - roundX / 2, height)));
-        area.add(new Area(new Rectangle2D.Double(0, 0, width, height - roundY / 2)));
-        return area;
-    }
-
-    private Shape createRoundBottomRight() {
-        int width = getWidth();
-        int height = getHeight();
-        int roundX = Math.min(width, borderRadius);
-        int roundY = Math.min(height, borderRadius);
-        Area area = new Area(new RoundRectangle2D.Double(0, 0, width, height, roundX, roundY));
-        area.add(new Area(new Rectangle2D.Double(0, 0, width - roundX / 2, height)));
-        area.add(new Area(new Rectangle2D.Double(0, 0, width, height - roundY / 2)));
-        return area;
-    }
-
-    public void setButtonColor(Color background, Color foreground) {
-        this.foreground = foreground;
-        this.background = background;
-        this.setBackground(background);
-        this.setForeground(foreground);
+    public void setFontIcon(FontIcon icon) {
+        this.icon = icon;
+        this.setIcon(icon);
     }
 
     public void setSize(ButtonSize size) {
@@ -251,18 +230,12 @@ public class Button extends JButton {
         this.borderRadius = borderRadius;
     }
 
-    public void setButtonIcon(Ikon icon) {
-        this.setIcon(FontIcon.of(icon, 24, theme.getCurrentScheme().getNeutralLight()));
+    public FontIcon getFontIcon() {
+        return icon;
     }
 
-//    @Override
-//    public void onChange(Object field) {
-//
-//    }
-//
-//    @Override
-//    public void onBlur(Object field) {
-//
-//    }
+    public int getIconSize() {
+        return iconSize;
+    }
 }
 
