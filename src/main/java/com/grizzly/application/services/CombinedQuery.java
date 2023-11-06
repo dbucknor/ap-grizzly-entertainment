@@ -21,17 +21,31 @@ public class CombinedQuery<T> {
         return this;
     }
 
+    public CombinedQuery<T> like(String param, String comparison, Object value) {
+        queryString = queryString + " WHERE " + param + " " + comparison.trim() + "LIKE";
+        values.put(comparison.split(":")[1] + "LIKE", value);
+        return this;
+    }
+
+    public CombinedQuery<T> orderBy(String field, String order) {
+        queryString = queryString + " ORDER BY " + field + " " + order;
+        return this;
+    }
+
     private void generateQuery(Session session) {
         query = session.createQuery(queryString);
-        System.out.println(queryString);
-        System.out.println(values);
+
         for (String key :
                 values.keySet()) {
-            query.setParameter(key, values.get(key));
+            if (key.contains("LIKE")) {
+                query.setParameter(key, "%" + values.get(key) + "%");
+            } else {
+                query.setParameter(key, values.get(key));
+            }
         }
     }
 
-    public Query<T> get(Session session) {
+    public Query<T> getQuery(Session session) {
         generateQuery(session);
         return query;
     }

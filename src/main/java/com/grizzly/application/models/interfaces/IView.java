@@ -1,4 +1,4 @@
-package com.grizzly.application.views;
+package com.grizzly.application.models.interfaces;
 
 public interface IView {
     public void initializeComponents();
