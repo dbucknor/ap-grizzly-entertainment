@@ -26,7 +26,7 @@ public class ThemeManager implements Serializable {
         darkScheme = new ColorScheme();
         lightScheme = new ColorScheme();
         currentScheme = new ColorScheme();
-        fontLoader = null;
+        fontLoader = new FontLoader();
     }
 
     /**
