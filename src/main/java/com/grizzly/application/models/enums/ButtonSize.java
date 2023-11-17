@@ -1,6 +1,8 @@
 package com.grizzly.application.models.enums;
 
-public enum ButtonSize {
+import java.io.Serializable;
+
+public enum ButtonSize implements Serializable {
     SMALL,
     NORMAL,
     EXTEND,

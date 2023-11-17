@@ -3,6 +3,8 @@ package com.grizzly.application.views.components.fields;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import com.github.lgooddatepicker.components.TimePickerSettings;
 import com.github.lgooddatepicker.optionalusertools.DateTimeChangeListener;
+import com.github.lgooddatepicker.optionalusertools.DateVetoPolicy;
+import com.github.lgooddatepicker.optionalusertools.TimeVetoPolicy;
 import com.github.lgooddatepicker.zinternaltools.DateTimeChangeEvent;
 import com.grizzly.application.models.interfaces.FieldListeners;
 import com.grizzly.application.models.interfaces.IFormField;
@@ -11,10 +13,7 @@ import com.grizzly.application.theme.ThemeManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -30,6 +29,8 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
     private String label;
     private Boolean fieldEnabled;
     private JLabel fieldLbl;
+    private LocalDateTime disabledStart;
+    private LocalDateTime disabledEnd;
     private com.github.lgooddatepicker.components.DateTimePicker field;
     private ThemeManager theme;
 
@@ -55,6 +56,49 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
         timeSetting = new TimePickerSettings(locale);
         dateSettings = new DatePickerSettings(locale);
 
+        dateSettings.setVetoPolicy(new DateVetoPolicy() {
+            @Override
+            public boolean isDateAllowed(LocalDate localDate) {
+                boolean b = true;
+
+                if (min != null) {
+                    b = localDate.isAfter(min.toLocalDate());
+                }
+                if (max != null) {
+                    b = localDate.isBefore(max.toLocalDate());
+                }
+                if (disabledEnd != null) {
+                    b = localDate.isAfter(disabledEnd.toLocalDate());
+                }
+                if (disabledStart != null) {
+                    b = localDate.isBefore(disabledStart.toLocalDate());
+                }
+
+                return b;
+            }
+        });
+
+        timeSetting.setVetoPolicy(new TimeVetoPolicy() {
+            @Override
+            public boolean isTimeAllowed(LocalTime localTime) {
+                boolean b = true;
+
+                if (min != null) {
+                    b = localTime.isAfter(min.toLocalTime());
+                }
+                if (max != null) {
+                    b = localTime.isBefore(max.toLocalTime());
+                }
+                if (disabledEnd != null) {
+                    b = localTime.isAfter(disabledEnd.toLocalTime());
+                }
+                if (disabledStart != null) {
+                    b = localTime.isBefore(disabledStart.toLocalTime());
+                }
+
+                return b;
+            }
+        });
 
         field = new com.github.lgooddatepicker.components.DateTimePicker(dateSettings, timeSetting);
 
@@ -72,7 +116,7 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
         fieldLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 5));
         fieldLbl.setFont(new Font("Montserrat Light", Font.PLAIN, 18));
         fieldLbl.setLabelFor(field);
-        fieldLbl.setForeground(Color.DARK_GRAY); //TODO: impleme
+        fieldLbl.setForeground(Color.DARK_GRAY);
         fieldLbl.setText(label);
         fieldLbl.setVisible(label != null);
 
@@ -159,6 +203,27 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
 //    public void setTimeSetting(TimePickerSettings timeSetting) {
 //        this.timeSetting = timeSetting;
 //    }
+
+
+    public ArrayList<FieldListeners<LocalDateTime>> getListeners() {
+        return listeners;
+    }
+
+    public LocalDateTime getDisabledStart() {
+        return disabledStart;
+    }
+
+    public void setDisabledStart(LocalDateTime disabledStart) {
+        this.disabledStart = disabledStart;
+    }
+
+    public LocalDateTime getDisabledEnd() {
+        return disabledEnd;
+    }
+
+    public void setDisabledEnd(LocalDateTime disabledEnd) {
+        this.disabledEnd = disabledEnd;
+    }
 
     public Locale getLocale() {
         return locale;

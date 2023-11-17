@@ -1,6 +1,8 @@
 package com.grizzly.application.models.enums;
 
-public enum RentedPer {
+import java.io.Serializable;
+
+public enum RentedPer implements Serializable {
     HOUR,
     DAY,
     WEEK,

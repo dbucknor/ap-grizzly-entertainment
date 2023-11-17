@@ -1,6 +1,8 @@
 package com.grizzly.application.models.enums;
 
-public enum FuelSource {
+import java.io.Serializable;
+
+public enum FuelSource implements Serializable {
     DIESEL,
     GASOLINE,
     SOLAR

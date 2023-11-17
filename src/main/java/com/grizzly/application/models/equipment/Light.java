@@ -4,21 +4,23 @@ import com.grizzly.application.models.Constraint;
 import com.grizzly.application.models.FieldConfig;
 import com.grizzly.application.models.InvoiceItem;
 import com.grizzly.application.models.TableConfig;
+import com.grizzly.application.models.enums.Condition;
 import com.grizzly.application.models.enums.RentalStatus;
 import com.grizzly.application.models.enums.RentedPer;
 import com.grizzly.application.models.enums.FormFieldType;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Entity(name = "Light")
 @Table(name = "Light")
+@PrimaryKeyJoinColumn(name = "equipmentId")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Light extends Equipment {
-    @JoinColumn(name = "equipmentId", referencedColumnName = "equipmentId")
-    private String equipmentId;
     private Integer luminosity;
     private Double wattage;
     private String voltage;
@@ -29,32 +31,20 @@ public class Light extends Equipment {
         voltage = "";
     }
 
-    public Light(String id, String name, String description, String category, Double price,
-                 ArrayList<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvailableDate, Integer luminosity,
-                 Double wattage, String voltage, RentedPer rentedPer, RentalStatus rentalStatus) {
-        super(id, name, description, category, price, maintenanceLogs, type, nextAvailableDate, rentedPer, rentalStatus);
+    public Light(Equipment details, Integer luminosity, Double wattage, String voltage) {
+        super(details);
         this.luminosity = luminosity;
         this.wattage = wattage;
         this.voltage = voltage;
     }
 
     public Light(Light light) {
-        super(light.equipmentId, light.name, light.description, light.category, light.price, light.maintenanceLogs, light.type, light.nextAvailableDate, light.rentedPer, light.rentalStatus);
+        super(light);
         this.luminosity = light.luminosity;
         this.wattage = light.wattage;
         this.voltage = light.voltage;
     }
 
-    @Override
-    public String getEquipmentId() {
-        return equipmentId;
-    }
-
-    @Override
-    public void setEquipmentId(String equipmentId) {
-        this.equipmentId = equipmentId;
-        super.setEquipmentId(equipmentId);
-    }
 
     public Integer getLuminosity() {
         return luminosity;
@@ -97,13 +87,13 @@ public class Light extends Equipment {
     @Transient
     @Override
     public Object[] getValues() {
-        return new Object[]{equipmentId, name, description, category, price, type, luminosity, wattage, voltage, rentedPer, rentalStatus, nextAvailableDate};
+        return new Object[]{equipmentId, name, description, condition, category, price, type, luminosity, wattage, voltage, rentedPer, rentalStatus, nextAvailableDate.format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a"))};
     }
 
     @Transient
     @Override
     public String[] getTableTitles() {
-        return new String[]{"Equipment Id", "Name", "Description", "Category", "Price", "Type", "Lumens", "Wattage", "Voltage", "Rented Per", "Rental Status", "Next Available Date"};
+        return new String[]{"Equipment Id", "Name", "Description", "Condition", "Category", "Price", "Type", "Lumens", "Wattage", "Voltage", "Rented Per", "Rental Status", "Next Available Date"};
     }
 
     @Override
@@ -112,21 +102,23 @@ public class Light extends Equipment {
     }
 
     protected List<FieldConfig> configFields() {
+        List<FieldConfig> fcs = super.configFields();
+
         FieldConfig lumens = new FieldConfig(Double.class, "setLuminosity", "getLuminosity", "Luminosity:", FormFieldType.NUMBER, null, 0);
         lumens.addConstraint(new Constraint(Constraint.NOT_NULL, "Luminosity cannot be empty!"))
                 .addConstraint(new Constraint(Constraint.GREATER, 0, "Luminosity must be greater than 0!"));
-        super.configFields().add(6, lumens);
+        fcs.add(6, lumens);
 
         FieldConfig watts = new FieldConfig(Double.class, "setWattage", "getWattage", "Wattage:", FormFieldType.NUMBER);
         watts.addConstraint(new Constraint(Constraint.NOT_NULL, "Wattage cannot be empty!"))
                 .addConstraint(new Constraint(Constraint.GREATER, 0, "Wattage must be greater than 0!"));
         watts.setAllowsNegative(false);
-        super.configFields().add(7, watts);
+        fcs.add(7, watts);
 
         FieldConfig volts = new FieldConfig(String.class, "setVoltage", "getVoltage", "Voltage:", FormFieldType.TEXT);
         volts.addConstraint(new Constraint(Constraint.NOT_NULL, "Voltage must not be empty!"));
-        super.configFields().add(8, volts);
+        fcs.add(8, volts);
 
-        return super.configFields();
+        return fcs;
     }
 }

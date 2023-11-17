@@ -4,19 +4,19 @@ import com.grizzly.application.models.*;
 import com.grizzly.application.models.interfaces.ITableController;
 import com.grizzly.application.models.interfaces.ITableEntity;
 import com.grizzly.application.models.interfaces.TableUpdateListener;
-import com.grizzly.application.services.CRUDService;
+import com.grizzly.application.services.Client;
 import com.grizzly.application.services.CombinedQuery;
-import org.hibernate.HibernateException;
 
 import javax.persistence.Id;
+import javax.swing.*;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.*;
 
 /**
  * Controller for Entity Table
@@ -27,119 +27,182 @@ import java.util.List;
 public class TableController<T extends ITableEntity, K extends Serializable> implements ITableController<T, K> {
     private TableConfig tableConfig;
     private List<K> selectedRecords;
-    private CRUDService<T, K> crudService;
+    // private CRUDService<T, K> crudService;
     private Class<T> clazz;
     private T editingRecord;
     private List<T> allRecords;
     private List<T> filteredRecords;
     private final ArrayList<TableUpdateListener> listeners;
+    private final Client client;
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     /**
      * Creates a new Table Controller
      *
-     * @param clazz Class<T> of Entity, Entity.class
+     * @param clazz Class<T> of Entity, Entity class
      */
     public TableController(Class<T> clazz) {
-        crudService = new CRUDService<>(clazz);
+        // crudService = new CRUDService<>(clazz);
+
         listeners = new ArrayList<>();
         selectedRecords = new ArrayList<>();
+
         allRecords = new ArrayList<>();
         editingRecord = null;
         this.clazz = clazz;
 
-        fetchTableData();
+        client = Client.getInstance();
 
         tableConfig = getConfig();
-        tableConfig.setTableData(recordsAsObjects(allRecords));
+        refreshData();
     }
 
-    /**
-     * Retrieves form field configurations
-     *
-     * @return field configurations
-     */
-    private TableConfig getConfig() {
+    @Override
+    public TableConfig getConfig() {
         try {
             return createObject(clazz).createEntityTableCfg();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException
                  | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Retrieves column titles
-     *
-     * @return column titles
-     */
-    private String[] getTitles() {
-        try {
-            return createObject(clazz).getTableTitles();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException
-                 | NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
+            return new TableConfig();
         }
     }
 
     @Override
-    public void insertRecord() {
-        try {
-            crudService.insert(editingRecord);
-            refreshData();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public void insertRecord(T record) {
+        executorService.submit(() -> {
+            try {
+                client.sendAction("ADD " + clazz.getSimpleName().toUpperCase());
+                client.send(record);
+
+                Object isCreated = client.receiveResponse();
+                refreshData();
+
+                SwingUtilities.invokeLater(() -> {
+                    if (isCreated instanceof Boolean && (Boolean) isCreated) {
+                        JOptionPane.showMessageDialog(null, "Record Created!");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error! Record Not Created!");
+                    }
+                });
+
+            } catch (Exception e) {
+                logger.error("Error creating record");
+                logger.error(e.getMessage());
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(null, "Error! Record Not Created!");
+                });
+            }
+        });
+
     }
 
     @Override
     public T readRecord(K id) {
         try {
-            return crudService.read(id);
-        } catch (HibernateException e) {
-            throw e;
+            Future<T> future = executorService.submit((Callable<T>) () -> {
+                try {
+                    client.sendAction("READ " + clazz.getSimpleName().toUpperCase());
+                    client.send(id);
+                    Object o = client.receiveResponse();
+
+                    return (T) o;
+
+                } catch (Exception e) {
+                    logger.error("Error reading record");
+                    logger.error(e.getMessage());
+
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(null, "Error! Record Not Read!");
+                    });
+
+                    return null;
+                }
+            });
+
+            return future.get();
+        } catch (ExecutionException | InterruptedException e) {
+            logger.error(e.getMessage());
+            return null;
         }
     }
 
 
     @Override
-    public void updateRecord() {
-        try {
-            crudService.update(editingRecord);
-            refreshData();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    public void updateRecord(T record) {
+        executorService.submit(() -> {
+            try {
+                client.sendAction("UPDATE " + clazz.getSimpleName().toUpperCase());
+                client.send(record);
+                Object isUpdated = client.receiveResponse();
 
-    @Override
-    public void deleteRecords() {
-        try {
-            for (K id : selectedRecords
-            ) {
-                crudService.delete(id);
+                SwingUtilities.invokeLater(() -> {
+                    if (isUpdated instanceof Boolean && (Boolean) isUpdated) {
+                        JOptionPane.showMessageDialog(null, "Record Updated!");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error! Record Not Updated!");
+                    }
+                });
                 refreshData();
+            } catch (Exception e) {
+                logger.error("Error updating record");
+                logger.error(e.getMessage());
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(null, "Error! Record Not Updated!");
+                });
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        });
+
     }
 
     @Override
-    public void fetchTableData() {
-        try {
-            allRecords = crudService.readALL();
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+    public void deleteRecords(List<K> recordIds) {
+        for (K id : recordIds
+        ) {
+            executorService.submit(() -> {
+                try {
+                    client.sendAction("DELETE " + clazz.getSimpleName().toUpperCase());
+                    client.send(id);
+
+                    Object isDeleted = client.receiveResponse();
+
+                    SwingUtilities.invokeLater(() -> {
+                        if (isDeleted instanceof Boolean && (Boolean) isDeleted) {
+                            JOptionPane.showMessageDialog(null, "Record Deleted!");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Error! Record Not Deleted!");
+                        }
+                    });
+
+                    refreshData();
+                } catch (Exception e) {
+                    logger.error("Error deleting record(s)");
+                    logger.error(e.getMessage());
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(null, "Error! Record Not Deleted! Record: " + id);
+                    });
+                }
+            });
         }
+
     }
 
-    /**
-     * Convert table data to 2d array
-     *
-     * @return Collection of row data
-     */
+    @Override
+    public List<T> fetchTableData() {
+        try {
+            client.sendAction("READ-ALL " + clazz.getSimpleName().toUpperCase());
+            Object o = client.receiveResponse();
+            return o != null ? (List<T>) o : new ArrayList<>();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
     public ArrayList<Object[]> recordsAsObjects(List<T> records) {
         ArrayList<Object[]> list = new ArrayList<>();
+        if (records == null) return list;
 
         for (T record : records) {
             Object[] o = record.getValues();
@@ -148,11 +211,70 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         return list;
     }
 
-    /**
-     * Refreshes table data
-     */
     public void refreshData() {
-        fetchTableData();
+        executorService.submit(() -> {
+            List<T> records = fetchTableData();
+
+            SwingUtilities.invokeLater(() -> {
+                allRecords = records.stream().map((u) -> clazz.cast(u)).toList();
+                tableConfig.setTableData(recordsAsObjects(allRecords));
+                updateListeners();
+            });
+        });
+    }
+
+    public static <T> T createObject(Class<T> clazz)
+            throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        Constructor<T> constructor = clazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor.newInstance();
+    }
+
+    public void filter(K id) {
+        try {
+            String idName = Objects.requireNonNull(findIdField()).getName();
+            executorService.submit(() -> {
+                try {
+                    client.sendAction("READ-WHERE " + clazz.getSimpleName().toUpperCase());
+                    client.send(new CombinedQuery<T>("SELECT t FROM " + clazz.getSimpleName() + " t")
+                            .like("t." + idName, " LIKE :value", id));
+
+                    Object res = client.receiveResponse();
+
+                    SwingUtilities.invokeLater(() -> {
+                        filteredRecords = res != null ? (List<T>) res : new ArrayList<>();
+                        tableConfig.setTableData(recordsAsObjects(filteredRecords));
+                        updateListeners();
+                    });
+                } catch (InterruptedException e) {
+                    logger.error(e.getMessage());
+
+                }
+            });
+        } catch (NullPointerException ne) {
+            logger.error(ne.getMessage());
+        }
+    }
+
+    private Field findIdField() {
+        Class<?> c = clazz;
+
+        while (c.getSuperclass() != null) {
+            for (Field f : c.getDeclaredFields()
+            ) {
+                if (f.isAnnotationPresent(Id.class)) {
+                    System.out.println(f);
+                    return f;
+                }
+            }
+            c = c.getSuperclass();
+        }
+
+        return null;
+
+    }
+
+    public void resetTableData() {
         tableConfig.setTableData(recordsAsObjects(allRecords));
         updateListeners();
     }
@@ -167,12 +289,6 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         listeners.remove(listener);
     }
 
-    public static <T> T createObject(Class<T> clazz)
-            throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        Constructor<T> constructor = clazz.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        return constructor.newInstance();
-    }
 
     /**
      * Update listeners
@@ -200,7 +316,7 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
     }
 
     public void setSelectedRecords(List<K> selectedRecords) {
-        System.out.println("Selected: " + selectedRecords.toString());
+        System.out.println("Selected: " + selectedRecords.toString());//todo-remove
         this.selectedRecords = selectedRecords;
     }
 
@@ -209,54 +325,6 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         ) {
             this.selectedRecords.add((K) o);
         }
-    }
-
-    public void filter(K id) {
-        try {
-            String idName = findIdField().getName();
-            System.out.println("Id Name: " + idName);
-            filteredRecords = crudService.readWhere((s) ->
-                    new CombinedQuery<T>("SELECT t FROM " + clazz.getSimpleName() + " t")
-                            .like("t." + idName, " LIKE :value", id)
-                            .getQuery(s));
-
-            tableConfig.setTableData(recordsAsObjects(filteredRecords));
-            updateListeners();
-        } catch (HibernateException he) {
-            System.out.println(he.getMessage());//TODO logging
-        }
-
-    }
-
-    private Field findIdField() {
-        Class<?> c = clazz;
-
-        while (c.getSuperclass() != null) {
-            for (Field f : c.getDeclaredFields()
-            ) {
-                if (f.isAnnotationPresent(Id.class)) {
-                    System.out.println(f);
-                    return f;
-                }
-            }
-            c = c.getSuperclass();
-        }
-
-        return null;
-
-    }
-
-    public void resetTableData() {
-        tableConfig.setTableData(recordsAsObjects(allRecords));
-        updateListeners();
-    }
-
-    public CRUDService<T, K> getCrudService() {
-        return crudService;
-    }
-
-    public void setCrudService(CRUDService<T, K> crudService) {
-        this.crudService = crudService;
     }
 
     public Class<T> getClazz() {
@@ -296,11 +364,23 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         return listeners;
     }
 
+    public Client getClient() {
+        return client;
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    public void setExecutorService(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
     @Override
     public String toString() {
         return "TableViewController{" +
                 "entries=" + tableConfig +
-                ", crud=" + crudService +
+//                ", crud=" + crudService +
                 ", type=" + clazz +
                 '}';
     }

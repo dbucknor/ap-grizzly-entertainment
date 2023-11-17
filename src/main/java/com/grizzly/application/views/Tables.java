@@ -1,8 +1,6 @@
 package com.grizzly.application.views;
 
-import com.grizzly.application.models.Invoice;
-import com.grizzly.application.models.InvoiceItem;
-import com.grizzly.application.models.User;
+import com.grizzly.application.models.*;
 import com.grizzly.application.models.equipment.Light;
 import com.grizzly.application.models.equipment.Power;
 import com.grizzly.application.models.equipment.Sound;
@@ -21,18 +19,22 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+/**
+ * All database tables screen
+ */
 public class Tables implements IView {
-    private Button invoiceItems, equipment, user, invoice;
+    private Button invoiceItems, equipment, user, invoice, transaction, requests;
     private final ThemeManager theme;
     private JPanel buttons, mainPanel;
-    private JTabbedPane equipmentTables;
-
+    private JTabbedPane equipmentTables, userTables;
     private final CustomCardLayout cardLayout;
-    private TableFrame soundEquipmentTable, stageEquipmentTable, lightEquipmentTable, powerEquipmentTable, invoiceItemTable, invoiceTable, userTable;
+    private TableFrame soundEquipmentTable, stageEquipmentTable, employeeTable, lightEquipmentTable, powerEquipmentTable;
+    private TableFrame invoiceItemTable, invoiceTable, customerTable, transactionTable, requestTable;
 
     public Tables() {
         cardLayout = new CustomCardLayout();
         theme = ThemeManager.getInstance();
+
         initializeComponents();
         addComponents();
         addListeners();
@@ -43,6 +45,7 @@ public class Tables implements IView {
     public void initializeComponents() {
         mainPanel = new JPanel(cardLayout);
         equipmentTables = new JTabbedPane();
+        userTables = new JTabbedPane();
 
         soundEquipmentTable = new TableFrame<Sound, String>("Sound Equipments", Sound.class);
         soundEquipmentTable.removeHeader(true);
@@ -56,10 +59,15 @@ public class Tables implements IView {
         powerEquipmentTable = new TableFrame<Power, String>("Power Equipments", Power.class);
         powerEquipmentTable.removeHeader(true);
 
-        invoiceTable = new TableFrame<Invoice, String>("Invoices", Invoice.class);
-        userTable = new TableFrame<User, String>("User", User.class);
-//
-        invoiceItemTable = new TableFrame<InvoiceItem, String>("Invoice Items", InvoiceItem.class);
+        customerTable = new TableFrame<Customer, String>("Customer", Customer.class);
+        customerTable.removeHeader(true);
+        employeeTable = new TableFrame<Employee, String>("Employee", Employee.class);
+        employeeTable.removeHeader(true);
+
+        invoiceTable = new TableFrame<Invoice, Integer>("Invoices", Invoice.class);
+        requestTable = new TableFrame<RentalRequest, Integer>("Rental Requests", RentalRequest.class);
+        transactionTable = new TableFrame<Transaction, Integer>("Transactions", Transaction.class);
+        invoiceItemTable = new TableFrame<InvoiceItem, Integer>("Invoice Items", InvoiceItem.class);
 
         buttons = new JPanel(new GridBagLayout());
 
@@ -67,6 +75,8 @@ public class Tables implements IView {
         invoice = createButton(FontAwesomeSolid.FILE_INVOICE_DOLLAR);
         user = createButton(FontAwesomeSolid.USERS);
         equipment = createButton(FontAwesomeSolid.TOOLS);
+        requests = createButton(FontAwesomeSolid.QUESTION);
+        transaction = createButton(FontAwesomeSolid.HANDSHAKE);
     }
 
     private Button createButton(Ikon icon) {
@@ -94,18 +104,29 @@ public class Tables implements IView {
         buttons.add(bigButton(equipment, "Equipment"), constraints);
 
         constraints.gridx = 3;
+        buttons.add(bigButton(requests, "Requests"), constraints);
+
+        constraints.gridx = 4;
+        buttons.add(bigButton(transaction, "Transactions"), constraints);
+
+        constraints.gridx = 5;
         buttons.add(bigButton(user, "Users"), constraints);
 //
         mainPanel.add(invoiceTable);
         mainPanel.add(invoiceItemTable);
         mainPanel.add(equipmentTables);
-        mainPanel.add(userTable);
+        mainPanel.add(userTables);
+        mainPanel.add(requestTable);
+        mainPanel.add(transactionTable);
         mainPanel.add(buttons);
 //
         cardLayout.addLayoutComponent(invoiceTable, "Invoice-Table");
+        cardLayout.addLayoutComponent(requestTable, "Rental-Requests-Table");
+        cardLayout.addLayoutComponent(transactionTable, "Transactions-Table");
+        cardLayout.addLayoutComponent(invoiceTable, "Invoice-Table");
         cardLayout.addLayoutComponent(buttons, "Buttons");
         cardLayout.addLayoutComponent(invoiceItemTable, "Invoice-Items-Table");
-        cardLayout.addLayoutComponent(userTable, "User-Table");
+        cardLayout.addLayoutComponent(userTables, "User-Tables");
         cardLayout.addLayoutComponent(equipmentTables, "Equipment-Tables");
         cardLayout.show(mainPanel, "Buttons");
     }
@@ -115,6 +136,9 @@ public class Tables implements IView {
         equipmentTables.addTab("Power Equipments", powerEquipmentTable);
         equipmentTables.addTab("Sound Equipments", soundEquipmentTable);
         equipmentTables.addTab("Stage Equipments", stageEquipmentTable);
+
+        userTables.addTab("Customers", customerTable);
+        userTables.addTab("Employees", employeeTable);
     }
 
     private JPanel bigButton(Button button, String label) {
@@ -144,16 +168,21 @@ public class Tables implements IView {
     @Override
     public void addListeners() {
         showTable(invoiceItems, "Invoice-Items-Table");
-        showTable(user, "User-Table");
+        showTable(user, "User-Tables");
         showTable(equipment, "Equipment-Tables");
         showTable(invoice, "Invoice-Table");
+        showTable(transaction, "Transactions-Table");
+        showTable(requests, "Rental-Requests-Table");
 
-        closeTable(userTable);
+        closeTable(customerTable);
+        closeTable(employeeTable);
         closeTable(stageEquipmentTable);
         closeTable(powerEquipmentTable);
         closeTable(lightEquipmentTable);
         closeTable(soundEquipmentTable);
         closeTable(invoiceItemTable);
+        closeTable(requestTable);
+        closeTable(transactionTable);
         closeTable(invoiceTable);
     }
 

@@ -3,32 +3,39 @@ package com.grizzly.application.models.equipment;
 import com.grizzly.application.models.enums.RentedPer;
 import jakarta.validation.constraints.NotNull;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 
+@Embeddable
 public class RentPeriod implements Serializable {
-    private LocalDateTime start, end;
+    @Column(name = "rentalStartDate")
+    private LocalDateTime rentalStartDate;
+
+    @Column(name = "rentalEndDate")
+    private LocalDateTime rentalEndDate;
 
     public RentPeriod() {
-        start = LocalDateTime.now();
-        end = LocalDateTime.now();
+        rentalStartDate = LocalDateTime.now();
+        rentalEndDate = LocalDateTime.now();
     }
 
     @NotNull
-    public RentPeriod(LocalDateTime start, LocalDateTime end) throws Exception {
-        checkDates(start, end);
-        this.start = start;
-        this.end = end;
+    public RentPeriod(LocalDateTime rentalStartDate, LocalDateTime rentalEndDate) throws Exception {
+        checkDates(rentalStartDate, rentalEndDate);
+        this.rentalStartDate = rentalStartDate;
+        this.rentalEndDate = rentalEndDate;
     }
 
     public RentPeriod(RentPeriod period) {
-        this.start = period.start;
-        this.end = period.end;
+        this.rentalStartDate = period.rentalStartDate;
+        this.rentalEndDate = period.rentalEndDate;
     }
 
-    private void checkDates(LocalDateTime start, LocalDateTime end) throws Exception {
+    public void checkDates(LocalDateTime start, LocalDateTime end) throws Exception {
         if (end.isBefore(start)) {
             throw new Exception("Invalid start and end date given!");
         }
@@ -36,11 +43,11 @@ public class RentPeriod implements Serializable {
 
     public boolean hasEnded() {
         LocalDateTime now = LocalDateTime.now();
-        return start.isBefore(now) && end.isBefore(now);
+        return rentalStartDate.isBefore(now) && rentalEndDate.isBefore(now);
     }
 
     public Duration difference() {
-        return Duration.between(start, end);
+        return Duration.between(rentalStartDate, rentalEndDate);
     }
 
     public int asHours() {
@@ -76,28 +83,28 @@ public class RentPeriod implements Serializable {
         }
     }
 
-    public LocalDateTime getStart() {
-        return start;
+    public LocalDateTime getRentalStartDate() {
+        return rentalStartDate;
     }
 
     @NotNull
-    public void setStart(LocalDateTime start) throws Exception {
-        checkDates(start, this.end);
-        this.start = start;
+    public void setRentalStartDate(LocalDateTime rentalStartDate) throws Exception {
+        checkDates(rentalStartDate, this.rentalEndDate);
+        this.rentalStartDate = rentalStartDate;
     }
 
-    public LocalDateTime getEnd() {
-        return end;
+    public LocalDateTime getRentalEndDate() {
+        return rentalEndDate;
     }
 
     @NotNull
-    public void setEnd(LocalDateTime end) throws Exception {
-        checkDates(this.start, end);
-        this.end = end;
+    public void setRentalEndDate(LocalDateTime rentalEndDate) throws Exception {
+        checkDates(this.rentalStartDate, rentalEndDate);
+        this.rentalEndDate = rentalEndDate;
     }
 
     @Override
     public String toString() {
-        return start + " - " + end;
+        return rentalStartDate + " - " + rentalEndDate;
     }
 }

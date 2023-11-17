@@ -93,6 +93,7 @@ CREATE TABLE Invoice
     totalPrice      DOUBLE(50, 2)              NOT NULL,
     deliveryAddress VARCHAR(300),
     deliveryOption  ENUM ('DELIVER', 'PICKUP') NOT NULL,
+#     FOREIGN KEY (customerId) REFERENCES Customer (customerId),
     PRIMARY KEY (invoiceId)
 );
 
@@ -105,6 +106,7 @@ CREATE TABLE InvoiceItem
     rentalStartDate DATETIME                NOT NULL,
     rentalEndDate   DATETIME                NOT NULL,
     totalPrice      DOUBLE(30, 2)           NOT NULL,
+    approved        BOOLEAN                 NOT NULL,
     PRIMARY KEY (invoiceItemId),
     FOREIGN KEY (invoiceId) REFERENCES Invoice (invoiceId),
     FOREIGN KEY (equipmentId) REFERENCES Equipment (equipmentId)
@@ -116,27 +118,29 @@ CREATE TABLE Chat
     PRIMARY KEY (chatId)
 );
 
-CREATE TABLE Messages
+CREATE TABLE Message
 (
-    messageId VARCHAR(50) NOT NULL,
-    chatId    VARCHAR(50) NOT NULL,
-    message   LONGTEXT,
-    senderId  VARCHAR(50) NOT NULL,
-    sentDate  DATETIME,
+    messageId  VARCHAR(50) NOT NULL,
+    chatId     VARCHAR(50) NOT NULL,
+    message    LONGTEXT,
+    senderId   VARCHAR(50) NOT NULL,
+    receiverId VARCHAR(50),
+    sentDate   DATETIME,
     PRIMARY KEY (messageId),
     FOREIGN KEY (chatId) REFERENCES Chat (chatId)
 );
 
-CREATE TABLE RentalRequests
+CREATE TABLE RentalRequest
 (
     requestId    INT(200) NOT NULL,
     invoiceId    INT(200) NOT NULL,
     requestDate  DATETIME NOT NULL,
     customerId   VARCHAR(50),
-    approved     BOOLEAN,
+    approved     BOOLEAN  NOT NULL,
     approvedBy   VARCHAR(50),
     approvedDate DATETIME,
     FOREIGN KEY (invoiceId) REFERENCES Invoice (invoiceId),
+#     FOREIGN KEY (customerId) REFERENCES Customer (customerId),
     PRIMARY KEY (requestId)
 );
 

@@ -138,11 +138,11 @@ public class Button extends JButton {
     protected void handleButtonSizing() {
         switch (size) {
             case SMALL -> {
-                borderRadius = 12;
-                this.setPreferredSize(new Dimension(75, 30));
-                this.setMinimumSize(new Dimension(75, 30));
-                this.setMaximumSize(new Dimension(75, 30));
-                this.setFont(new Font("Montserrat Regular", Font.PLAIN, 16));
+                borderRadius = 10;
+                this.setSize(new Dimension(70, 20));
+//                this.setMinimumSize(new Dimension(60, 20));
+                this.setFont(theme.getFontLoader().getBODY().deriveFont(Font.BOLD, 14f));
+                this.setVerticalAlignment(SwingConstants.CENTER);
             }
             case EXTEND -> {
                 borderRadius = 15;
@@ -161,7 +161,6 @@ public class Button extends JButton {
                 borderRadius = 15;
                 this.setPreferredSize(new Dimension(250, 40));
                 this.setMinimumSize(new Dimension(250, 40));
-                this.setMaximumSize(new Dimension(250, 40));
                 this.setFont(new Font("Montserrat Regular", Font.PLAIN, 18));
 
             }

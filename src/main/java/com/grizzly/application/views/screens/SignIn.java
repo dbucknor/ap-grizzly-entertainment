@@ -150,7 +150,7 @@ public class SignIn extends Screen {
         signUpBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                MainWindow.getMainLayout().show(MainWindow.getInstance().getContentPane(), "Sign-Up");
+                MainWindow.getCardLayout().show(MainWindow.getInstance().getFrame(), "Sign-Up");
             }
         });
         super.addListeners();

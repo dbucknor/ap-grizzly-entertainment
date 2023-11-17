@@ -22,6 +22,8 @@ public class Toggle extends Button implements IFormField<Boolean> {
         this.setText(label);
         this.listeners = new ArrayList<>();
         setIcons();
+
+        setButtonColor(theme.getCurrentScheme().getNeutralLight(), theme.getCurrentScheme().getPrimary());
     }
 
     private void setIcons() {
@@ -30,7 +32,7 @@ public class Toggle extends Button implements IFormField<Boolean> {
         } else {
             setFontIcon(FontIcon.of(FontAwesomeSolid.TOGGLE_OFF));
         }
-        setIconSize(18);
+        setIconSize(28);
     }
 
     public Boolean getToggled() {
@@ -42,6 +44,8 @@ public class Toggle extends Button implements IFormField<Boolean> {
         this.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                toggled = !toggled;
+                setIcons();
                 updateListeners();
             }
         });

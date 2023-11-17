@@ -18,15 +18,13 @@ import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 public class TableFrame<T extends ITableEntity, K extends Serializable> extends JInternalFrame implements IView {
-
     private JPanel header, searchPanel;
     private Box btnPanel;
     private TextField searchField;
@@ -129,7 +127,7 @@ public class TableFrame<T extends ITableEntity, K extends Serializable> extends 
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (recordSelected()) {
-                    editForm = new EntityEditForm<T, K>(name, tableController, TableFormMode.DELETE);
+                    tableController.deleteRecords(tableController.getSelectedRecords());
                 }
             }
         });
@@ -143,6 +141,7 @@ public class TableFrame<T extends ITableEntity, K extends Serializable> extends 
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateListeners();
+                tableController.getClient().createConnection();
             }
         });
         searchField.addListeners(new FieldListeners<String>() {
@@ -167,9 +166,24 @@ public class TableFrame<T extends ITableEntity, K extends Serializable> extends 
             public void actionPerformed(ActionEvent e) {
                 if ((searchString instanceof String && !((String) searchString).trim().isEmpty()) || searchString instanceof Number) {
                     tableController.filter(searchString);
-                    System.out.println("U gud man!");
                 }
-                System.out.println("Ha...");
+            }
+        });
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                System.out.println("Table shown");
+//                tableController.getClient().connect();
+                tableController.refreshData();
+                super.componentShown(e);
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                System.out.println("Table hidden");
+//                tableController.getClient().closeConnection();
+                super.componentHidden(e);
             }
         });
 
@@ -181,7 +195,7 @@ public class TableFrame<T extends ITableEntity, K extends Serializable> extends 
 
     private boolean recordSelected() {
         if (tableController.getSelectedRecords().isEmpty()) {
-            new JOptionPane("No Record Selected To Edit/View!", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No Record Selected To Edit/View!", "No Record", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         return true;
@@ -208,6 +222,8 @@ public class TableFrame<T extends ITableEntity, K extends Serializable> extends 
         this.setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.pack();
-        this.setVisible(true);
+        this.setVisible(false);
     }
+
+
 }

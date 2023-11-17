@@ -3,6 +3,8 @@ package com.grizzly.application.views.screens;
 import com.grizzly.application.models.interfaces.IView;
 import com.grizzly.application.theme.ThemeManager;
 import com.grizzly.application.views.components.HeaderView;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,24 +12,18 @@ import java.awt.*;
 public abstract class Screen extends JPanel implements IView {
     protected HeaderView headerView;
     protected JPanel container;
-    protected ThemeManager theme = ThemeManager.getInstance();
+    protected ThemeManager theme;
+    protected Logger logger;
 
     public Screen() {
         super(new BorderLayout());
-//        initializeBaseComponents();
-//        addBaseComponents();
+        logger = LogManager.getLogger(Screen.class);
+        theme = ThemeManager.getInstance();
+
         initializeComponents();
         addComponents();
         addListeners();
         setProperties();
-    }
-//
-//    private void initializeBaseComponents() {
-//
-//    }
-
-    private void addBaseComponents() {
-
     }
 
     @Override

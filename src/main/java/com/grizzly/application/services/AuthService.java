@@ -2,6 +2,7 @@ package com.grizzly.application.services;
 
 import com.grizzly.application.models.User;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,12 +10,15 @@ import java.util.List;
 public class AuthService implements IAuth<User> {
     private User user = null;
     private final ArrayList<AuthChangedListener<User>> listeners;
-    private final CRUDService<User, String> crudService;
+    //    private final CRUDService<User, String> crudService;
     private static AuthService instance;
+
+    private Client client;
 
     private AuthService() {
         listeners = new ArrayList<>();
-        crudService = new CRUDService<>(User.class); //TODO: change to bean
+        client = Client.getInstance();
+//        crudService = new CRUDService<>(User.class); //TODO: change to bean
     }
 
     public static AuthService getInstance() {
@@ -50,10 +54,15 @@ public class AuthService implements IAuth<User> {
     @Override
     public User logIn(String email, String password) throws AuthException {
         try {
-            List<User> results = crudService.readWhere((session -> new CombinedQuery<User>("SELECT u FROM User u")
-                    .where("u.email", "=:email", email).getQuery(session)));
+//            client.getStreams();
+            client.sendAction("READ-WHERE USER");
+            client.send(new CombinedQuery<User>("SELECT u FROM User u")
+                    .where("u.email", "=:email", email));
 
-            User usr = results.isEmpty() ? null : results.get(0);
+            Object results = client.receiveResponse();
+//            client();
+
+            User usr = results == null ? null : ((List<User>) results).get(0);
 
             if (usr != null) {
                 if (usr.getPassword().compareTo(password) != 0) {
@@ -67,7 +76,10 @@ public class AuthService implements IAuth<User> {
             return user;
         } catch (AuthException e) {
             setLoggedInUser(null);
+            //todo logging
             throw e;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);//todo
         }
 
     }
