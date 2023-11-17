@@ -1,4 +1,4 @@
-package com.grizzly.application.views;
+package com.grizzly.application.views.screens;
 
 import com.grizzly.application.views.components.CheckoutPanel;
 import com.grizzly.application.views.components.InvoicePanel;

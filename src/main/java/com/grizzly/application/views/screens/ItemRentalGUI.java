@@ -1,4 +1,4 @@
-package com.grizzly.application.views;
+package com.grizzly.application.views.screens;
 
 import com.grizzly.application.models.Invoice;
 import com.grizzly.application.models.InvoiceItem;
