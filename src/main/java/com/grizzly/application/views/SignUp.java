@@ -24,9 +24,7 @@ public class SignUp extends Screen{
     private JPanel formPanel;
     private final ClassLoader loader = SignUp.class.getClassLoader();
 
-    public static void main(String[] args) {
 
-    }
     public SignUp(){
         placeComponents();
         layoutComponents();
