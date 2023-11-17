@@ -17,14 +17,12 @@ public class Invoice implements ITableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "invoiceId")
-    private String invoiceId;
+    private Integer invoiceId;
     @Column(name = "invoiceDate")
     private LocalDateTime invoiceDate;
-
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customerId")
-    private User customer;
+    private Customer customer;
     @Column(name = "deliveryAddress")
     private String deliveryAddress;
     @Column(name = "deliveryOption")
@@ -36,7 +34,7 @@ public class Invoice implements ITableEntity {
     private Double discount;
     @OneToOne(mappedBy = "invoice")
     private RentalRequest rentalRequest;
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<InvoiceItem> items;
 
     public Invoice() {
@@ -50,40 +48,31 @@ public class Invoice implements ITableEntity {
         this.customer = null;
     }
 
-    public Invoice(String invoiceId, LocalDateTime invoiceDate, String deliveryAddress,
+    public Invoice(RentalRequest rentalRequest, Customer customer, Integer invoiceId, LocalDateTime invoiceDate, String deliveryAddress,
                    TransportOption deliveryOption, Double totalPrice, Double discount, Set<InvoiceItem> items) {
         this.invoiceId = invoiceId;
         this.invoiceDate = invoiceDate;
+        this.rentalRequest = rentalRequest;
         this.deliveryAddress = deliveryAddress;
         this.deliveryOption = deliveryOption;
         this.totalPrice = totalPrice;
         this.discount = discount;
         this.items = items;
-        this.customer = null;
+        this.customer = customer;
     }
 
 
-    public Invoice(Invoice other) {
-        this(other.invoiceId, other.invoiceDate, other.deliveryAddress,
-                other.deliveryOption, other.totalPrice, other.discount, other.items);
-        this.customer = other.customer;
+    public Invoice(Invoice invoice) {
+        this.invoiceId = invoice.invoiceId;
+        this.invoiceDate = invoice.invoiceDate;
+        this.rentalRequest = invoice.rentalRequest;
+        this.deliveryAddress = invoice.deliveryAddress;
+        this.deliveryOption = invoice.deliveryOption;
+        this.totalPrice = invoice.totalPrice;
+        this.discount = invoice.discount;
+        this.items = invoice.items;
+        this.customer = invoice.customer;
     }
-
-    //toString
-    @Override
-    public String toString() {
-        return "Quote{" +
-                "quoteId='" + invoiceId + '\'' +
-//                ", customerId='" + customerId + '\'' +
-                ", date=" + invoiceDate +
-                ", deliveryAddress='" + deliveryAddress + '\'' +
-                ", equipmentTransport='" + deliveryOption + '\'' +
-                ", totalPrice=" + totalPrice +
-                ", discount=" + discount +
-                ", equipments=" + items +
-                '}';
-    }
-
 
     public void generateInvoice() {
         System.out.println("Invoice for Quote ID: " + invoiceId);
@@ -103,9 +92,9 @@ public class Invoice implements ITableEntity {
         System.out.println("Final Price: $" + finalPrice);
     }
 
-    public void setCustomer(User customer) {
-        this.customer = customer;
-    }
+//    public void setCustomer(User customer) {
+//        this.customer = customer;
+//    }
 
     public RentalRequest getRentalRequest() {
         return rentalRequest;
@@ -115,11 +104,11 @@ public class Invoice implements ITableEntity {
         this.rentalRequest = rentalRequest;
     }
 
-    public String getInvoiceId() {
+    public Integer getInvoiceId() {
         return invoiceId;
     }
 
-    public User getCustomer() {
+    public Customer getCustomer() {
         return customer;
     }
 
@@ -131,7 +120,7 @@ public class Invoice implements ITableEntity {
         return invoiceDate;
     }
 
-    public void setInvoiceId(String quoteId) {
+    public void setInvoiceId(Integer quoteId) {
         this.invoiceId = quoteId;
     }
 
@@ -204,7 +193,7 @@ public class Invoice implements ITableEntity {
     public List<FieldConfig> configFields() {
         List<FieldConfig> fcs = new ArrayList<>();
 
-        FieldConfig id = new FieldConfig(String.class, "setInvoiceId", "getInvoiceId", "Invoice Id", FormFieldType.TEXT, true);
+        FieldConfig id = new FieldConfig(Integer.class, "setInvoiceId", "getInvoiceId", "Invoice Id", FormFieldType.NUMBER, true);
         id.setDisabled(true);
         id.addConstraint(new Constraint(Constraint.IS_NULL, "Invoice id is automatically generated!"));
         fcs.add(id);

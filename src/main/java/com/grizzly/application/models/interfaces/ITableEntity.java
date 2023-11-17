@@ -11,4 +11,5 @@ public interface ITableEntity extends Serializable {
     String[] getTableTitles();
 
     TableConfig createEntityTableCfg();
+    
 }

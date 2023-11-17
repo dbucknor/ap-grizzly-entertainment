@@ -1,6 +1,8 @@
 package com.grizzly.application.models.enums;
 
-public enum TransportOption {
+import java.io.Serializable;
+
+public enum TransportOption implements Serializable {
     DELIVER,
     PICKUP
 }

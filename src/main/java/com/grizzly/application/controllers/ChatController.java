@@ -4,7 +4,7 @@ import com.grizzly.application.models.Chat;
 import com.grizzly.application.models.Message;
 import com.grizzly.application.models.User;
 import com.grizzly.application.models.interfaces.IChatController;
-import com.grizzly.application.services.CRUDService;
+import com.grizzly.application.services.Client;
 import com.grizzly.application.services.CombinedQuery;
 
 import java.util.List;
@@ -13,32 +13,40 @@ public class ChatController implements IChatController {
     private Chat chat;
     private List<Message> messages;
     private List<Message> listeners;
-    private CRUDService<Message, String> crudService;
-
+    //    private CRUDService<Message, String> crudService;
+    private Client client;
 
     private ChatsController chatsController;
 
     public ChatController(Chat chat) {
         this.chat = chat;
-        this.crudService = new CRUDService<>(Message.class);
-        fetchMessages(chat.getChatId());
+//        this.crudService = new CRUDService<>(Message.class);\
+        client = Client.getInstance();
+//        fetchMessages(chat.getChatId());
     }
 
     @Override
     public void insertMessage(Message message) {
-        crudService.insert(message);
-        refreshMessages();
+//        crudService.insert(message);
+//        client.getStreams();
+//        client.sendAction("ADD MESSAGE");
+//        client.send(message);
+//        client.closeStreams();
+//        refreshMessages();
     }
 
     @Override
     public void fetchMessages(String chatId) {
         try {
-            messages = crudService.readWhere((s) ->
-                    new CombinedQuery<Message>("SELECT ALL m FROM Message m")
-                            .where("m.chatId", "=:chatId", chatId)
-                            .orderBy("m.sentDate", "ASC")
-                            .getQuery(s)
-            );
+//            client.getStreams();
+//            client.sendAction("READ-WHERE MESSAGE");
+//            client.send(new CombinedQuery<Message>("SELECT ALL m FROM Message m")
+//                    .where("m.chatId", "=:chatId", chatId)
+//                    .orderBy("m.sentDate", "ASC"));
+//
+//            messages = (List<Message>) client.receiveResponse();
+//
+//            client.closeStreams();
         } catch (Exception e) {
             System.out.println("messages: " + e.getMessage());
         }
@@ -46,14 +54,18 @@ public class ChatController implements IChatController {
 
     @Override
     public void deleteMessage(Message message) {
-        crudService.delete(message.getMessageId());
-        refreshMessages();
+//        crudService.delete(message.getMessageId());
+//        client.sendAction("DELETE MESSAGE");
+//        client.send(message.getMessageId());
+//        refreshMessages();
+
     }
 
     @Override
     public void deleteMessage(String messageId) {
-        crudService.delete(messageId);
-        refreshMessages();
+//        client.sendAction("DELETE MESSAGE");
+//        client.send(messageId);
+//        refreshMessages();
     }
 
     public Chat getChat() {
@@ -66,7 +78,6 @@ public class ChatController implements IChatController {
 
     public void refreshMessages() {
         fetchMessages(chat.getChatId());
-
     }
 
     public void setChat(Chat chat) {
@@ -77,13 +88,13 @@ public class ChatController implements IChatController {
         return chat.getUsers().stream().filter((u) -> u.getUserId().compareTo(currentUser.getUserId()) != 0).toList().get(0);
     }
 
-    public CRUDService<Message, String> getCrudService() {
-        return crudService;
-    }
-
-    public void setCrudService(CRUDService<Message, String> crudService) {
-        this.crudService = crudService;
-    }
+//    public CRUDService<Message, String> getCrudService() {
+//        return crudService;
+//    }
+//
+//    public void setCrudService(CRUDService<Message, String> crudService) {
+//        this.crudService = crudService;
+//    }
 
 
     public ChatsController getChatsController() {

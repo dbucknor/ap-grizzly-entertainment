@@ -2,6 +2,7 @@ package com.grizzly.application.models.equipment;
 
 import com.grizzly.application.models.Constraint;
 import com.grizzly.application.models.FieldConfig;
+import com.grizzly.application.models.enums.Condition;
 import com.grizzly.application.models.enums.RentalStatus;
 import com.grizzly.application.models.enums.RentedPer;
 import com.grizzly.application.models.enums.FormFieldType;
@@ -13,10 +14,9 @@ import java.util.List;
 
 @Entity(name = "Stage")
 @Table(name = "Stage")
+@PrimaryKeyJoinColumn(name = "equipmentId")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Stage extends Equipment {
-    @JoinColumn(name = "equipmentId", referencedColumnName = "equipmentId")
-    private String equipmentId;
     private Double width;
     private Double height;
     private Double length;
@@ -27,15 +27,11 @@ public class Stage extends Equipment {
         this.length = 0.0;
     }
 
-    public Stage(String equipmentId, String name, String description, String category, Double price,
-                 ArrayList<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvailableDate,
-                 Double width, Double height, Double length, RentedPer rentedPer, RentalStatus rentalStatus) {
-        super(equipmentId, name, description, category, price, maintenanceLogs, type, nextAvailableDate, rentedPer, rentalStatus);
+    public Stage(Equipment details, Double width, Double height, Double length) {
+        super(details);
         this.width = width;
         this.height = height;
         this.length = length;
-        this.equipmentId = equipmentId;
-
     }
 
     public Stage(Stage stage) {
@@ -43,20 +39,8 @@ public class Stage extends Equipment {
         this.width = stage.width;
         this.height = stage.height;
         this.length = stage.length;
-        this.equipmentId = stage.equipmentId;
-
     }
 
-    @Override
-    public String getEquipmentId() {
-        return equipmentId;
-    }
-
-    @Override
-    public void setEquipmentId(String equipmentId) {
-        this.equipmentId = equipmentId;
-        super.setEquipmentId(equipmentId);
-    }
 
     public Double getWidth() {
         return width;
@@ -101,44 +85,55 @@ public class Stage extends Equipment {
                 "width=" + width +
                 ", height=" + height +
                 ", length=" + length +
-                "} " + super.toString();
+                ", equipmentId='" + equipmentId + '\'' +
+                ", name='" + name + '\'' +
+                ", image=" + image +
+                ", description='" + description + '\'' +
+                ", rentalStatus=" + rentalStatus +
+                ", category='" + category + '\'' +
+                ", price=" + price +
+                ", rentedPer=" + rentedPer +
+                ", condition=" + condition +
+                ", type='" + type + '\'' +
+                ", nextAvailableDate=" + nextAvailableDate +
+                '}';
     }
 
     @Transient
 
     @Override
     public String[] getTableTitles() {
-        return new String[]{"Id", "Name", "Description", "Category", "Price ($)", "Type", "Width (ft)", "Height (ft)", "Length (ft)", "Rented Per", "Rental Status", "Next Available Date"};
+        return new String[]{"Id", "Name", "Description", "Condition", "Category", "Price ($)", "Type", "Width (ft)", "Height (ft)", "Length (ft)", "Rented Per", "Rental Status", "Next Available Date"};
     }
 
     @Transient
 
     @Override
     public Object[] getValues() {
-        return new Object[]{equipmentId, name, description, category, price, type, width, height, length, rentedPer, rentalStatus, nextAvailableDate};
+        return new Object[]{equipmentId, name, description, condition, category, price, type, width, height, length, rentedPer, rentalStatus, nextAvailableDate};
     }
 
     @Transient
 
 
     protected List<FieldConfig> configFields() {
-
+        List<FieldConfig> fcs = super.configFields();
 
         FieldConfig w = new FieldConfig(Double.class, "setWidth", "getWidth", "Width (ft):", FormFieldType.NUMBER, null, 4.0);
         w.addConstraint(new Constraint(Constraint.GREATER, 0, "Width must be greater than o!"));
         w.setAllowsNegative(false);
-        super.configFields().add(6, w);
+        fcs.add(6, w);
 
         FieldConfig h = new FieldConfig(Double.class, "setHeight", "getHeight()", "Height (ft):", FormFieldType.NUMBER, null, 4.0);
         h.addConstraint(new Constraint(Constraint.GREATER, 0, "Height must be greater than o!"));
         h.setAllowsNegative(false);
-        super.configFields().add(7, h);
+        fcs.add(7, h);
 
         FieldConfig l = new FieldConfig(Double.class, "setLength", "getLength", "Length (ft):", FormFieldType.NUMBER, null, 4.0);
         l.addConstraint(new Constraint(Constraint.GREATER, 0, "Length must be greater than o!"));
         l.setAllowsNegative(false);
-        super.configFields().add(8, l);
+        fcs.add(8, l);
 
-        return super.configFields();
+        return fcs;
     }
 }

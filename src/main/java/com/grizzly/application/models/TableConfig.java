@@ -9,6 +9,11 @@ public class TableConfig {
     private ArrayList<Object[]> tableData;
     private List<FieldConfig> fieldConfigs;
 
+    public TableConfig() {
+        this.titles = new String[0];
+        this.fieldConfigs = new ArrayList<>();
+    }
+
     public TableConfig(String[] titles, List<FieldConfig> fieldConfigs) {
         this.titles = titles;
         this.fieldConfigs = fieldConfigs;
@@ -21,6 +26,8 @@ public class TableConfig {
     }
 
     public Object[][] getEntriesAsArray() {
+        if (tableData == null) return new Object[0][0];
+        
         Object[][] objectArray = new Object[tableData.size()][];
 
         for (int i = 0; i < tableData.size(); i++) {

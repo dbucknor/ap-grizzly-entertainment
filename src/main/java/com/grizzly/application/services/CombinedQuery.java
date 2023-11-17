@@ -3,9 +3,10 @@ package com.grizzly.application.services;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class CombinedQuery<T> {
+public class CombinedQuery<T> implements Serializable {
     private Query<T> query;
     private String queryString;
     HashMap<String, Object> values;

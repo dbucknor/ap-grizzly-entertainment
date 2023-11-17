@@ -1,6 +1,8 @@
 package com.grizzly.application.models.enums;
 
-public enum UserType {
+import java.io.Serializable;
+
+public enum UserType implements Serializable {
     CUSTOMER,
     EMPLOYEE
 
