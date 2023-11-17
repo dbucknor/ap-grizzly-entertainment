@@ -22,8 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static java.awt.Frame.MAXIMIZED_BOTH;
 

@@ -2,6 +2,9 @@ package com.grizzly.application.views.components;
 
 import com.grizzly.application.models.InvoiceItem;
 import com.grizzly.application.models.enums.ButtonSize;
+
+import com.grizzly.application.models.equipment.Equipment;
+
 import com.grizzly.application.models.interfaces.IView;
 import com.grizzly.application.theme.ThemeManager;
 import com.grizzly.application.views.components.fields.Button;
@@ -28,6 +31,7 @@ public class CartItem extends JPanel implements IView {
 
     public void initializeComponents() {
         periodLbl = new JLabel(item.getRentalStartDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")) + "-" + item.getRentalEndDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")));
+
         button = new Button("Remove", ButtonSize.SMALL);
         price = new JLabel(Double.toString(item.getTotalPrice()));
 
@@ -48,8 +52,9 @@ public class CartItem extends JPanel implements IView {
 
         c.gridx = 0;
         c.gridy = 0;
-        c.gridheight = 5;
-        c.gridwidth = 5;
+
+        c.gridheight= 5;
+        c.gridwidth= 5;
         c.insets = new Insets(0, 0, 0, 5);
         this.add(image, c);
 
@@ -62,8 +67,9 @@ public class CartItem extends JPanel implements IView {
         c.gridx = 1;
         c.gridy = 1;
         c.gridheight = 1;
-        c.gridwidth = 15;
-        this.add(periodLbl, c);
+=
+        c.gridwidth= 15;
+        this.add(periodLbl,c);
     }
 
     public void addListeners() {
