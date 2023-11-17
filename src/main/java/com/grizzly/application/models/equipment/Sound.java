@@ -3,6 +3,7 @@ package com.grizzly.application.models.equipment;
 import com.grizzly.application.models.Constraint;
 import com.grizzly.application.models.FieldConfig;
 import com.grizzly.application.models.TableConfig;
+import com.grizzly.application.models.enums.Condition;
 import com.grizzly.application.models.enums.RentalStatus;
 import com.grizzly.application.models.enums.RentedPer;
 import com.grizzly.application.models.enums.FormFieldType;
@@ -15,10 +16,9 @@ import java.util.List;
 
 @Entity(name = "Sound")
 @Table(name = "Sound")
+@PrimaryKeyJoinColumn(name = "equipmentId")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Sound extends Equipment {
-    @JoinColumn(name = "equipmentId", referencedColumnName = "equipmentId")
-    private String equipmentId;
     private Double wattage;
     private String inputVoltage;
     private Double peakDecibel;
@@ -32,15 +32,12 @@ public class Sound extends Equipment {
         this.amplifierClass = "";
     }
 
-    public Sound(String equipmentId, String name, String description, String category, Double price,
-                 ArrayList<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvailableDate,
-                 Double wattage, String inputVoltage, Double peakDecibel, String amplifierClass, RentedPer rentedPer, RentalStatus rentalStatus) {
-        super(equipmentId, name, description, category, price, maintenanceLogs, type, nextAvailableDate, rentedPer, rentalStatus);
+    public Sound(Equipment details, Double wattage, String inputVoltage, Double peakDecibel, String amplifierClass) {
+        super(details);
         this.wattage = wattage;
         this.inputVoltage = inputVoltage;
         this.peakDecibel = peakDecibel;
         this.amplifierClass = amplifierClass;
-        this.equipmentId = equipmentId;
     }
 
     public Sound(Sound sound) {
@@ -49,19 +46,8 @@ public class Sound extends Equipment {
         this.inputVoltage = sound.inputVoltage;
         this.peakDecibel = sound.peakDecibel;
         this.amplifierClass = sound.amplifierClass;
-        this.equipmentId = sound.equipmentId;
     }
 
-    @Override
-    public String getEquipmentId() {
-        return equipmentId;
-    }
-
-    @Override
-    public void setEquipmentId(String equipmentId) {
-        this.equipmentId = equipmentId;
-        super.setEquipmentId(equipmentId);
-    }
 
     public Double getWattage() {
         return wattage;
@@ -106,11 +92,11 @@ public class Sound extends Equipment {
     @Override
     public String toString() {
         return "Sound{" +
-                "equipmentId='" + equipmentId + '\'' +
-                ", wattage=" + wattage +
+                "wattage=" + wattage +
                 ", inputVoltage='" + inputVoltage + '\'' +
                 ", peakDecibel=" + peakDecibel +
                 ", amplifierClass='" + amplifierClass + '\'' +
+                ", equipmentId='" + equipmentId + '\'' +
                 ", name='" + name + '\'' +
                 ", image=" + image +
                 ", description='" + description + '\'' +
@@ -118,7 +104,7 @@ public class Sound extends Equipment {
                 ", category='" + category + '\'' +
                 ", price=" + price +
                 ", rentedPer=" + rentedPer +
-                ", maintenanceLogs=" + maintenanceLogs +
+                ", condition=" + condition +
                 ", type='" + type + '\'' +
                 ", nextAvailableDate=" + nextAvailableDate +
                 '}';
@@ -127,14 +113,14 @@ public class Sound extends Equipment {
     @Transient
     @Override
     public String[] getTableTitles() {
-        return new String[]{"Id", "Name", "Description", "Price", "Category", "Type", "Power", "Input Voltage", "Peak Db", "Amplifier Class", "Rented Per", "Rental Status", "Next Available Date"};
+        return new String[]{"Equipment Id", "Name", "Description", "Condition", "Price", "Category", "Type", "Power", "Input Voltage", "Peak Db", "Amplifier Class", "Rented Per", "Rental Status", "Next Available Date"};
     }
 
     @Transient
 
     @Override
     public Object[] getValues() {
-        return new Object[]{equipmentId, name, description, price, category, type, wattage, inputVoltage, peakDecibel, amplifierClass, rentedPer, rentalStatus, nextAvailableDate.format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a"))};
+        return new Object[]{equipmentId, name, description, condition, price, category, type, wattage, inputVoltage, peakDecibel, amplifierClass, rentedPer, rentalStatus, nextAvailableDate.format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a"))};
     }
 
 

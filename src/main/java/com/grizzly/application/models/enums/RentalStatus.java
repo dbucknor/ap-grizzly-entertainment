@@ -1,6 +1,8 @@
 package com.grizzly.application.models.enums;
 
-public enum RentalStatus {
+import java.io.Serializable;
+
+public enum RentalStatus implements Serializable {
     AVAILABLE,
     RENTED
 }

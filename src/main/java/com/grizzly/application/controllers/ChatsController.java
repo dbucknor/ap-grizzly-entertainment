@@ -1,29 +1,50 @@
 package com.grizzly.application.controllers;
 
 import com.grizzly.application.models.Chat;
-import com.grizzly.application.services.CRUDService;
+import com.grizzly.application.services.Client;
+import com.grizzly.application.services.ThreadService;
 
+import javax.swing.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class ChatsController {
     private List<Chat> chats;
     private final List<ChatsListener> listeners;
     private Chat currentChat;
-    private CRUDService<Chat, String> crudService;
+    private Client client;
+
+    public ChatsController(Client client) {
+        this.client = client;
+        listeners = new ArrayList<>();
+    }
 
     public ChatsController() {
         listeners = new ArrayList<>();
-        crudService = new CRUDService<>(Chat.class);
-        readAllChats();
+        client = Client.getInstance();
     }
 
     public void insertChat(Chat chat) {
-        crudService.insert(chat);
+//        client.sendAction("ADD CHAT");
+//        client.send(chat);
     }
 
     public Chat readChat(String chatId) {
-        return crudService.read(chatId);
+        Future<Chat> future = ThreadService.executor.submit((Callable<Chat>) () -> {
+            client.sendAction("READ CHAT");
+            client.send(chatId);
+            return (Chat) client.receiveResponse();
+        });
+
+        try {
+            return future.get();
+        } catch (ExecutionException | InterruptedException e) {
+            return null;
+        }
     }
 
     public void refresh() {
@@ -31,20 +52,38 @@ public class ChatsController {
     }
 
     public void readAllChats() {
-        chats = crudService.readALL();
-        updateListeners();
+        ThreadService.executor.submit(() -> {
+//            client.getStreams();
+//            client.sendAction("READ-ALL CHAT");
+//            Object res = client.receiveResponse();
+////            client.closeStreams();
+//            SwingUtilities.invokeLater(() -> {
+//                chats = res != null ? (List<Chat>) res : new ArrayList<>();
+//                updateListeners();
+//            });
+        });
     }
 
     public void updateChat(Chat chat) throws Exception {
-        crudService.update(chat);
+//        ThreadService.executor.submit(() -> {
+//            client.sendAction("UPDATE CHAT");
+//            client.send(chat);
+//        });
+//        crudService.update(chat);
     }
 
     public void deleteChat(Chat chat) {
-
+        ThreadService.executor.submit(() -> {
+//            client.sendAction("DELETE CHAT");
+//            client.send(chat.getChatId());//todo errors
+        });
     }
 
     public void deleteChat(String chatId) {
-        crudService.delete(chatId);
+        ThreadService.executor.submit(() -> {
+//            client.sendAction("DELETE CHAT");
+//            client.send(chatId);
+        });
     }
 
     public List<ChatsListener> getListeners() {
@@ -63,13 +102,13 @@ public class ChatsController {
         this.currentChat = currentChat;
     }
 
-    public CRUDService<Chat, String> getCrudService() {
-        return crudService;
-    }
-
-    public void setCrudService(CRUDService<Chat, String> crudService) {
-        this.crudService = crudService;
-    }
+//    public CRUDService<Chat, String> getCrudService() {
+//        return crudService;
+//    }
+//
+//    public void setCrudService(CRUDService<Chat, String> crudService) {
+//        this.crudService = crudService;
+//    }
 
     private void updateListeners() {
         for (ChatsListener cl : listeners

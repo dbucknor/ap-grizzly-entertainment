@@ -78,7 +78,7 @@ public class HeaderView extends JPanel {
     }
 
     private void goHome() {
-        MainWindow.getMainLayout().show(MainWindow.getInstance().getContentPane(), "Load-Screen");
+        MainWindow.getCardLayout().show(MainWindow.getInstance().getFrame().getContentPane(), "Load-Screen");
     }
 
     private void addComponentsToPanel() {

@@ -1,12 +1,13 @@
 package com.grizzly.application.models;
 
+import com.grizzly.application.models.enums.FormFieldType;
 import com.grizzly.application.models.enums.UserType;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 
 @Entity(name = "Employee")
 @Table(name = "Employee")
@@ -18,7 +19,7 @@ public class Employee extends User {
     private String staffId;
 
     //    @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "approvedBy", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<RentalRequest> approvedRequests;
 
     public Employee() {
@@ -55,13 +56,31 @@ public class Employee extends User {
     }
 
     @Override
-    public String getUserId() {
-        return userId;
+    public Object[] getValues() {
+        return new Object[]{userId, staffId, firstName, lastName, email, password, accountType};
     }
 
+    @Transient
     @Override
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public String[] getTableTitles() {
+        return new String[]{"User Id", "Staff Id", "First Name", "Last Name", "Email", "Password", "Account Type"};
+    }
+
+    @Transient
+    @Override
+    public TableConfig createEntityTableCfg() {
+        return new TableConfig(getTableTitles(), configFields());
+    }
+
+    @Transient
+    protected List<FieldConfig> configFields() {
+        List<FieldConfig> fcs = new ArrayList<>(super.configFields());
+
+        FieldConfig id = new FieldConfig(String.class, "setStaffId", "getStaffId", "Staff Id", FormFieldType.TEXT, 50, 2, true);
+        id.addConstraint(new Constraint(Constraint.IS_NULL, "Staff Id is auto generated!"));
+        fcs.add(1, id);
+
+        return fcs;
     }
 
     @Override

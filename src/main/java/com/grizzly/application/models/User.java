@@ -1,8 +1,11 @@
 package com.grizzly.application.models;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grizzly.application.models.enums.FormFieldType;
 import com.grizzly.application.models.enums.UserType;
 import com.grizzly.application.models.interfaces.ITableEntity;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,6 +13,7 @@ import java.lang.annotation.Repeatable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 
 @Entity(name = "User")
 @Table(name = "User")
@@ -26,7 +30,7 @@ public class User implements Serializable, ITableEntity {
     protected String firstName;
     @Column(name = "lastName")
     protected String lastName;
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     protected Set<Message> messages;
     @Transient
     protected boolean loggedIn;
@@ -105,7 +109,7 @@ public class User implements Serializable, ITableEntity {
         this.accountType = type;
     }
 
-    public void setType(String type) {
+    public void setAccountType(String type) {
         this.accountType = UserType.valueOf(type);
     }
 
@@ -133,25 +137,29 @@ public class User implements Serializable, ITableEntity {
         this.password = password;
     }
 
+    @Transient
     @Override
     public Object[] getValues() {
         return new Object[]{userId, firstName, lastName, email, password, accountType};
     }
 
+    @Transient
     @Override
     public String[] getTableTitles() {
-        return new String[]{"Id", "First Name", "Last Name", "Email", "Password", "Account Type"};
+        return new String[]{"User Id", "First Name", "Last Name", "Email", "Password", "Account Type"};
     }
 
+    @Transient
     @Override
     public TableConfig createEntityTableCfg() {
         return new TableConfig(getTableTitles(), configFields());
     }
 
+    @Transient
     protected List<FieldConfig> configFields() {
         List<FieldConfig> fcs = new ArrayList<>();
 
-        FieldConfig id = new FieldConfig(String.class, "setUserId", "getUserId", "Id", FormFieldType.TEXT, 50, 2, true);
+        FieldConfig id = new FieldConfig(String.class, "setUserId", "getUserId", "User Id", FormFieldType.TEXT, 50, 2, true);
         id.addConstraint(new Constraint(Constraint.NOT_NULL, "User Id must not be empty!"));
         fcs.add(id);
 
@@ -173,7 +181,7 @@ public class User implements Serializable, ITableEntity {
                 .addConstraint(new Constraint(Constraint.MATCHES, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,24}$", "Password is too weak! Ensure to use a combination of numbers, symbols and uppercase and lowercase letters."));
         fcs.add(pswd);
 
-        FieldConfig type = new FieldConfig(String.class, "setAccountType", "getAccountType", "Account Type:", FormFieldType.SELECT, UserType.values());
+        FieldConfig type = new FieldConfig(UserType.class, "setAccountType", "getAccountType", "Account Type:", FormFieldType.SELECT, UserType.values());
         fcs.add(type);
 
         return fcs;

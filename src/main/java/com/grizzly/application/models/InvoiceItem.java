@@ -1,12 +1,17 @@
 package com.grizzly.application.models;
 
 import com.grizzly.application.models.enums.FormFieldType;
+import com.grizzly.application.models.enums.RentedPer;
 import com.grizzly.application.models.equipment.Equipment;
 import com.grizzly.application.models.equipment.RentPeriod;
 import com.grizzly.application.models.interfaces.ITableEntity;
+import jakarta.validation.constraints.NotNull;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,12 +22,13 @@ public class InvoiceItem implements ITableEntity {
     @Column(name = "invoiceItemId")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer invoiceItemId;
-    @Transient
-    private RentPeriod rentPeriod;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "equipmentId")
     private Equipment equipment;
     private Integer quantity;
+    private Boolean approved;
+    @Embedded
+    private RentPeriod rentPeriod;
     @Column(name = "totalPrice")
     private Double totalPrice;
     @ManyToOne(fetch = FetchType.EAGER)
@@ -31,32 +37,43 @@ public class InvoiceItem implements ITableEntity {
 
     public InvoiceItem() {
         this.invoiceItemId = 0;
-        this.rentPeriod = null;
         this.equipment = null;
         this.quantity = 1;
         this.totalPrice = 0.0;
+        this.approved = false;
+        this.rentPeriod = new RentPeriod();
     }
 
-    public InvoiceItem(int invoiceItemId, String invoiceId, RentPeriod rentPeriod, Equipment equipment, int quantity, Double totalPrice) {
+
+    public InvoiceItem(int invoiceItemId, Boolean approved, Equipment equipment, int quantity, Double totalPrice, RentPeriod rentPeriod) {
         this.invoiceItemId = invoiceItemId;
-//        this.invoiceId = invoiceId;
-        this.rentPeriod = rentPeriod;
         this.equipment = equipment;
         this.quantity = quantity;
         this.totalPrice = totalPrice;
+        this.approved = approved;
+        this.rentPeriod = rentPeriod;
     }
 
     public InvoiceItem(InvoiceItem invoiceItem) {
         this.invoiceItemId = invoiceItem.invoiceItemId;
-//        this.invoiceId = invoiceItem.invoiceId;
-        this.rentPeriod = invoiceItem.rentPeriod;
+        this.invoice = invoiceItem.invoice;
+        this.approved = invoiceItem.approved;
         this.equipment = invoiceItem.equipment;
         this.quantity = invoiceItem.quantity;
         this.totalPrice = invoiceItem.totalPrice;
+        this.rentPeriod = invoiceItem.rentPeriod;
     }
 
     private void calculatePrice() {
         totalPrice = (rentPeriod.periodAs(equipment.getRentedPer()) * equipment.getPrice()) * quantity;
+    }
+
+    public Boolean getApproved() {
+        return approved;
+    }
+
+    public void setApproved(Boolean approved) {
+        this.approved = approved;
     }
 
     public void setQuantity(Integer quantity) {
@@ -87,6 +104,14 @@ public class InvoiceItem implements ITableEntity {
         this.quantity = quantity;
     }
 
+    public RentPeriod getRentPeriod() {
+        return rentPeriod;
+    }
+
+    public void setRentPeriod(RentPeriod rentPeriod) {
+        this.rentPeriod = rentPeriod;
+    }
+
     public void setQuantity(Number quantity) {
         this.quantity = quantity.intValue();
     }
@@ -111,73 +136,40 @@ public class InvoiceItem implements ITableEntity {
         this.invoiceItemId = itemId;
     }
 
-
-//    public String getInvoiceId() {
-//        return invoiceId;
-//    }
-//
-//    public void setInvoiceId(String invoiceId) {
-//        this.invoiceId = invoiceId;
-//    }
-
-    public RentPeriod getRentPeriod() {
-        return rentPeriod;
+    public LocalDateTime getRentalStartDate() {
+        return rentPeriod.getRentalStartDate();
     }
 
-    public void setRentPeriod(RentPeriod rentPeriod) {
-        this.rentPeriod = rentPeriod;
-    }
-
-    public void setRentPeriodStart(LocalDateTime date) {
-        if (this.rentPeriod == null) {
-            this.rentPeriod = new RentPeriod();
-        }
+    @NotNull
+    public void setRentalStartDate(LocalDateTime rentalStartDate) {
         try {
-            this.rentPeriod.setStart(date);
+            rentPeriod.setRentalStartDate(rentalStartDate);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void setRentPeriodEnd(LocalDateTime date) {
-        if (this.rentPeriod == null) {
-            this.rentPeriod = new RentPeriod();
-        }
+    public LocalDateTime getRentalEndDate() {
+        return rentPeriod.getRentalEndDate();
+    }
+
+    @NotNull
+    public void setRentalEndDate(LocalDateTime rentalEndDate) {
         try {
-            this.rentPeriod.setEnd(date);
+            rentPeriod.setRentalEndDate(rentalEndDate);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public void setRentPeriodStart(String date) {
-
-    }
-
-    public void setRentPeriodEnd(String date) {
-
-    }
-
-    @Override
-    public String toString() {
-        return "InvoiceItem{" +
-                "itemId=" + invoiceItemId +
-//                ", invoiceId='" + invoiceId + '\'' +
-                ", rentPeriod=" + rentPeriod +
-                ", equipment=" + equipment +
-                ", quantity=" + quantity +
-                ", totalPrice=" + totalPrice +
-                '}';
     }
 
     @Override
     public Object[] getValues() {
-        return new Object[]{invoice.getInvoiceId(), invoiceItemId, equipment.getEquipmentId(), quantity, rentPeriod != null ? rentPeriod.getStart() : "", rentPeriod != null ? rentPeriod.getEnd() : "", totalPrice};
+        return new Object[]{invoice.getInvoiceId(), invoiceItemId, equipment.getEquipmentId(), quantity, totalPrice, rentPeriod.getRentalStartDate(), rentPeriod.getRentalEndDate(), approved};
     }
 
     @Override
     public String[] getTableTitles() {
-        return new String[]{"Item Id", "Invoice Id", "Equipment Id", "Quantity", "Rent Period Start", "Rent Period End", "Total Price"};
+        return new String[]{"Item Id", "Invoice Id", "Equipment Id", "Quantity", "Total Price", "Renat Start", "Rent End", "Approved"};
     }
 
     public List<FieldConfig> configFields() {
@@ -195,14 +187,17 @@ public class InvoiceItem implements ITableEntity {
         FieldConfig qty = new FieldConfig(Integer.class, "setQuantity", "getQuantity", "Quantity:", FormFieldType.NUMBER, null, 1);
         fcs.add(qty);
 
-        FieldConfig rps = new FieldConfig(LocalDateTime.class, "setRentPeriodStart", "getRentPeriodStart", "Rent Period Start:", FormFieldType.DATE);
-        fcs.add(rps);
+        FieldConfig rsd = new FieldConfig(LocalDateTime.class, "setRentalStartDate", "getRentalStartDate", "Rent Period Start:", FormFieldType.DATE);
+        fcs.add(rsd);
 
-        FieldConfig rpe = new FieldConfig(LocalDateTime.class, "setRentPeriodEnd", "getRentPeriodEnd", "Rent Period End:", FormFieldType.DATE);
-        fcs.add(rpe);
+        FieldConfig red = new FieldConfig(LocalDateTime.class, "setRentalEndDate", "getRentalEndDate", "Rent Period End:", FormFieldType.DATE);
+        fcs.add(red);
 
         FieldConfig tp = new FieldConfig(Double.class, "setTotalPrice", "getTotalPrice", "Total Price:", FormFieldType.NUMBER, null, 0.0);
         fcs.add(tp);
+
+        FieldConfig ap = new FieldConfig(Boolean.class, "setApproved", "getApproved", "Approved", FormFieldType.TOGGLE);
+        fcs.add(ap);
 
         return fcs;
     }
@@ -210,5 +205,17 @@ public class InvoiceItem implements ITableEntity {
     @Override
     public TableConfig createEntityTableCfg() {
         return new TableConfig(getTableTitles(), configFields());
+    }
+
+    @Override
+    public String toString() {
+        return "InvoiceItem{" +
+                "invoiceItemId=" + invoiceItemId +
+                ", equipment=" + equipment +
+                ", quantity=" + quantity +
+                ", approved=" + approved +
+                ", totalPrice=" + totalPrice +
+                ", invoice=" + invoice +
+                '}';
     }
 }

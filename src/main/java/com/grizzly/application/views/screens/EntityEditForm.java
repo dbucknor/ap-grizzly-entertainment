@@ -41,7 +41,7 @@ public class EntityEditForm<T extends ITableEntity, K extends Serializable> exte
     protected final Logger logger;
 
     public EntityEditForm(String name, TableController<T, K> controller, TableFormMode mode) {
-        super(MainWindow.getInstance(), mode.toString() + " RECORD", true);
+        super(MainWindow.getInstance().getFrame(), mode.toString() + " RECORD", true);
 
         this.setLayout(new BorderLayout());
         this.name = name;
@@ -148,7 +148,7 @@ public class EntityEditForm<T extends ITableEntity, K extends Serializable> exte
 
     private void handleCreate() {
         try {
-            controller.insertRecord();
+            controller.insertRecord(controller.getEditingRecord());
             JOptionPane.showMessageDialog(null, "Record Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             controller.refreshData();
             logger.info("Record created successfully.");
@@ -161,7 +161,7 @@ public class EntityEditForm<T extends ITableEntity, K extends Serializable> exte
 
     private void handleUpdate() {
         try {
-            controller.updateRecord();
+            controller.updateRecord(controller.getEditingRecord());
             JOptionPane.showMessageDialog(null, "Record Updated Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             controller.refreshData();
             logger.info("Record updated successfully.");
@@ -174,7 +174,7 @@ public class EntityEditForm<T extends ITableEntity, K extends Serializable> exte
 
     private void handleDelete() {
         try {
-            controller.getCrudService().delete(controller.getSelectedRecords().get(0));
+            controller.deleteRecords(controller.getSelectedRecords());
             JOptionPane.showMessageDialog(null, "Record Deleted Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             controller.refreshData();
             logger.info("Record deleted successfully.");
@@ -197,14 +197,20 @@ public class EntityEditForm<T extends ITableEntity, K extends Serializable> exte
     private void fetchRecord() {
         try {
             T r = controller.readRecord(controller.getSelectedRecords().get(0));
+
+            if (r == null) {
+                JOptionPane.showMessageDialog(this, "Record not found!", "Fetch Error", JOptionPane.ERROR_MESSAGE);
+                closeForm();
+                return;
+            }
+
             controller.setEditingRecord(r);
             logger.info("Record to update fetched successfully!");
         } catch (HibernateException e) {
             logger.error("Error creating " + mode.toString().toLowerCase() + " form for record!");
             logger.error(e.getMessage());
             JOptionPane.showMessageDialog(null, "An error has occurred!", "Error Creating Form", JOptionPane.ERROR_MESSAGE);
-            dispose();
-            setVisible(false);
+            closeForm();
         }
     }
 

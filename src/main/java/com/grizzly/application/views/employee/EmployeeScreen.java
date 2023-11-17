@@ -13,27 +13,21 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+/**
+ * Main screen for employee application
+ */
 public class EmployeeScreen extends Screen {
-
     private JPanel sidePanel;
     private CustomCardLayout cardLayout;
-
     private Button home, requests, tables, chats;
     private EmployeeHome employeeHome;
     private RentalRequests requestsView;
-    private Chats chatsView;
     private Tables tablesViews;
-
-    public EmployeeScreen() {
-
-    }
 
     @Override
     public void initializeComponents() {
         cardLayout = new CustomCardLayout();
 
-
-        chatsView = new Chats();
         requestsView = new RentalRequests();
         tablesViews = new Tables();
 
@@ -44,6 +38,7 @@ public class EmployeeScreen extends Screen {
 
         initializeButtons();
         super.initializeComponents();
+
         employeeHome = new EmployeeHome(container, cardLayout);
     }
 
@@ -84,13 +79,13 @@ public class EmployeeScreen extends Screen {
         sidePanel.add(chats, constraints);
 
         container.add(employeeHome);
-        container.add(chatsView);
+        container.add(requestsView);
         container.add(tablesViews.getMainPanel());
 
         cardLayout.addLayoutComponent(employeeHome, "Home");
-        cardLayout.addLayoutComponent(chatsView, "Chats");
+        cardLayout.addLayoutComponent(requestsView, "Requests");
         cardLayout.addLayoutComponent(tablesViews.getMainPanel(), "Tables");
-        cardLayout.show(container, "Tables");
+        cardLayout.show(container, "Requests");
 
 
         this.add(sidePanel, BorderLayout.WEST);

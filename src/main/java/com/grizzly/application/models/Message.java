@@ -1,5 +1,7 @@
 package com.grizzly.application.models;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grizzly.application.models.enums.FormFieldType;
 import com.grizzly.application.models.interfaces.ITableEntity;
 
@@ -88,11 +90,23 @@ public class Message implements ITableEntity {
         this.chat = chat;
     }
 
+    public String serialize() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(this);
+    }
+
+    public Message deserialize(String json) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(json, this.getClass());
+    }
+
+    @Transient
     @Override
     public Object[] getValues() {
         return new Object[]{messageId, sender.getUserId(), message, sentDate};
     }
 
+    @Transient
     @Override
     public String[] getTableTitles() {
         return new String[]{"Message Id:", "Sender Id:", "Receiver Id:", "Message:", "Sent Date:"};
@@ -110,6 +124,7 @@ public class Message implements ITableEntity {
 //        return null;
 //    }
 
+    @Transient
     @Override
     public TableConfig createEntityTableCfg() {
         return null;

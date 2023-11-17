@@ -1,6 +1,8 @@
 package com.grizzly.application.models.enums;
 
-public enum FormFieldType {
+import java.io.Serializable;
+
+public enum FormFieldType implements Serializable {
     TEXT,
     LONGTEXT,
     NUMBER,

@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity(name = "RentalRequests")
-@Table(name = "rentalrequests")
+@Entity(name = "RentalRequest")
+@Table(name = "rentalrequest")
 public class RentalRequest implements Serializable, ITableEntity {
     @Id
     @Column(name = "requestId")
-    private String requestId;
+    private Integer requestId;
     @Column(name = "requestDate")
     private LocalDateTime requestDate;
     @Column(name = "approvedDate")
@@ -24,9 +24,11 @@ public class RentalRequest implements Serializable, ITableEntity {
     @OneToOne
     @JoinColumn(name = "invoiceId")
     private Invoice invoice;
+    @OneToOne(mappedBy = "request")
+    private Transaction transaction;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "approvedBy")
-    private Employee employee;
+    private Employee approvedBy;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customerId")
     private Customer requestFrom;
@@ -37,9 +39,10 @@ public class RentalRequest implements Serializable, ITableEntity {
         this.approved = false;
         this.invoice = null;
         this.approvedDate = null;
+        this.transaction = null;
     }
 
-    public RentalRequest(String requestId, LocalDateTime requestDate, Boolean approved, Invoice invoice, LocalDateTime approvedDate) {
+    public RentalRequest(Integer requestId, LocalDateTime requestDate, Boolean approved, Invoice invoice, LocalDateTime approvedDate) {
         this.requestId = requestId;
         this.requestDate = requestDate;
         this.approved = approved;
@@ -47,15 +50,22 @@ public class RentalRequest implements Serializable, ITableEntity {
         this.approvedDate = approvedDate;
     }
 
-    public RentalRequest(RentalRequest other) {
-        this(other.requestId, other.requestDate, other.approved, other.invoice, other.approvedDate);
+    public RentalRequest(RentalRequest request) {
+        this.approvedBy = request.approvedBy;
+        this.requestId = request.requestId;
+        this.requestFrom = request.requestFrom;
+        this.requestDate = request.requestDate;
+        this.approved = request.approved;
+        this.invoice = request.invoice;
+        this.approvedDate = request.approvedDate;
+        this.transaction = request.transaction;
     }
 
-    public String getRequestId() {
+    public Integer getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(String requestID) {
+    public void setRequestId(Integer requestID) {
         this.requestId = requestID;
     }
 
@@ -103,12 +113,12 @@ public class RentalRequest implements Serializable, ITableEntity {
         this.invoice = invoice;
     }
 
-    public Employee getEmployee() {
-        return employee;
+    public Employee getApprovedBy() {
+        return approvedBy;
     }
 
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
+    public void setApprovedBy(Employee employee) {
+        this.approvedBy = employee;
     }
 
     public Customer getRequestFrom() {
@@ -119,20 +129,10 @@ public class RentalRequest implements Serializable, ITableEntity {
         this.requestFrom = requestFrom;
     }
 
-    @Override
-    public String toString() {
-        return "RentalRequest{" +
-                "requestID='" + requestId + '\'' +
-                ", date=" + requestDate +
-                ", approvedDate=" + approvedDate +
-                ", approved=" + approved +
-                ", quote=" + invoice +
-                '}';
-    }
 
     @Override
     public Object[] getValues() {
-        return new Object[]{requestId, requestFrom.getCustomerId(), requestDate, approved, employee.getStaffId(), approvedDate};
+        return new Object[]{requestId, requestFrom.getCustomerId(), requestDate, approved, approvedBy != null ? approvedBy.getStaffId() : "", approvedDate};
     }
 
     @Override
@@ -144,7 +144,7 @@ public class RentalRequest implements Serializable, ITableEntity {
     public List<FieldConfig> configFields() {
         List<FieldConfig> fcs = new ArrayList<>();
 
-        FieldConfig rid = new FieldConfig(String.class, "setRequestId", "getRequestId", "Request Id:", FormFieldType.TEXT, true);
+        FieldConfig rid = new FieldConfig(Integer.class, "setRequestId", "getRequestId", "Request Id:", FormFieldType.NUMBER, true);
         rid.addConstraint(new Constraint(Constraint.NOT_NULL, "Request must be Invoice/Quote Id and not empty!"));
         fcs.add(rid);
 

@@ -15,17 +15,28 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Viewport for Database Entity
+ *
+ * @param <T> entity type
+ * @param <K> entity's id type
+ */
 public class TableView<T extends ITableEntity, K extends Serializable> implements IView {
     private DefaultTableModel tableModel;
     private TableConfig tableConfig;
     private Class<T> classType;
     private JTable table;
-    private JScrollPane scrollPane;
-    private final ArrayList<TableListener> listeners;
-    private ScrollPaneLayout scrollPaneLayout;
+    private final JScrollPane scrollPane;
+    private final ArrayList<TableListener<K>> listeners;
     private final TableController<T, K> tableController;
-    private ThemeManager theme;
+    private final ThemeManager theme;
 
+    /**
+     * Creates a new table view
+     *
+     * @param classType       class reference for entity
+     * @param tableController controller for table operations
+     */
     public TableView(Class<T> classType, TableController<T, K> tableController) {
         this.classType = classType;
         this.listeners = new ArrayList<>();
@@ -45,48 +56,11 @@ public class TableView<T extends ITableEntity, K extends Serializable> implement
 
     @Override
     public void initializeComponents() {
-        scrollPaneLayout = new ScrollPaneLayout();
-
         tableModel = new DefaultTableModel(tableConfig.getEntriesAsArray(), tableConfig.getTitles());
         table = new JTable(tableModel);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
-//        TableColumnModel tcm = table.getTableHeader().getColumnModel();
-//        table.setTableHeader(new JTableHeader());
-        TableColumn column;
-        TableCellRenderer cr;
-
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            column = table.getColumnModel().getColumn(i);
-            column.setPreferredWidth(350);
-
-//            for (int t = 0; t < table.getRowCount(); t++) {
-//                cr = table.getCellRenderer(t, i);
-//                System.out.println(t + " " + i);
-//                System.out.println((t + 1) % 2 == 0);
-//
-//                if ((t + 1) % 2 == 0) {
-//                    table.prepareRenderer(cr, t, i).setBackground(theme.getCurrentScheme().getNeutralLight());
-//                } else {
-//                    table.prepareRenderer(cr, t, i).setBackground(theme.getCurrentScheme().getAccent1());
-//                }
-//            }
-        }
-
-        table.setDefaultEditor(Object.class, null);
-
-        JTableHeader jth = table.getTableHeader();
-        jth.setResizingAllowed(false);
-
-//        jth.getPreferredSize();
-        jth.setForeground(theme.getCurrentScheme().getNeutralLight());
-        jth.setBackground(theme.getCurrentScheme().getPrimary());
-        jth.setFont(jth.getFont().deriveFont(Font.BOLD));
-
-        table.setTableHeader(jth);
-
-//        table.setPreferredSize(new Dimension(5000, 800));
         table.setVisible(true);
+        resetDisplay();
     }
 
     @Override
@@ -98,6 +72,7 @@ public class TableView<T extends ITableEntity, K extends Serializable> implement
     @Override
     public void addListeners() {
         DefaultListSelectionModel selectionModel = new DefaultListSelectionModel();
+
         selectionModel.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -111,6 +86,7 @@ public class TableView<T extends ITableEntity, K extends Serializable> implement
                     }
                 }
                 tableController.setSelectedRecords(ids);
+                //updateSelectedIdListener((K[]) ids.toArray());
             }
         });
 
@@ -120,13 +96,46 @@ public class TableView<T extends ITableEntity, K extends Serializable> implement
             @Override
             public void onTableUpdate(String[] titles, ArrayList<Object[]> tableData, List<FieldConfig> fieldConfigs) {
                 setTableConfig(new TableConfig(titles, tableData, fieldConfigs));
+                resetDisplay();
             }
         });
 
     }
 
-    private void updateSelectedIdListener(int[] selection) {
-        for (TableListener tl :
+    /**
+     * Adds column colors etc
+     */
+    private void resetDisplay() {
+        for (int cIndex = 0; cIndex < table.getColumnCount(); cIndex++) {
+            TableColumn column = table.getColumnModel().getColumn(cIndex);
+            column.setPreferredWidth(350);
+//            for (int rIndex = 0; rIndex < table.getRowCount(); rIndex++) {
+//                TableCellRenderer cr = table.getCellRenderer(rIndex, cIndex);//Todo
+//                System.out.println(rIndex + " " + cIndex);
+//                System.out.println((rIndex + 1) % 2 == 0);
+//
+//                if ((rIndex + 1) % 2 == 0) {
+//                    table.prepareRenderer(cr, rIndex, cIndex).setBackground(theme.getCurrentScheme().getNeutralLight());
+//                } else {
+//                    table.prepareRenderer(cr, rIndex, cIndex).setBackground(theme.getCurrentScheme().getAccent1());
+//                }
+//            }
+        }
+
+        table.setDefaultEditor(Object.class, null);
+
+        JTableHeader jth = table.getTableHeader();
+        jth.setResizingAllowed(false);
+
+        jth.setForeground(theme.getCurrentScheme().getNeutralLight());
+        jth.setBackground(theme.getCurrentScheme().getPrimary());
+        jth.setFont(jth.getFont().deriveFont(Font.BOLD));
+
+        table.setTableHeader(jth);
+    }
+
+    private void updateSelectedIdListener(K[] selection) {
+        for (TableListener<K> tl :
                 listeners) {
             if (tl != null) tl.onSelectedChanged(selection);
         }
@@ -138,16 +147,15 @@ public class TableView<T extends ITableEntity, K extends Serializable> implement
 
     @Override
     public void setProperties() {
-//        scrollPane.setPreferredSize(table.getPreferredSize());
         scrollPane.setAutoscrolls(true);
         scrollPane.setVisible(true);
     }
 
-    public void addListener(TableListener tl) {
+    public void addListener(TableListener<K> tl) {
         listeners.add(tl);
     }
 
-    public void removeListener(TableListener tl) {
+    public void removeListener(TableListener<K> tl) {
         listeners.remove(tl);
     }
 

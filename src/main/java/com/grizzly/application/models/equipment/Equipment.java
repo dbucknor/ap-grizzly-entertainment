@@ -1,20 +1,34 @@
 package com.grizzly.application.models.equipment;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grizzly.application.models.Constraint;
 import com.grizzly.application.models.FieldConfig;
 import com.grizzly.application.models.TableConfig;
+import com.grizzly.application.models.User;
 import com.grizzly.application.models.interfaces.ITableEntity;
 import com.grizzly.application.models.enums.Condition;
 import com.grizzly.application.models.enums.RentalStatus;
 import com.grizzly.application.models.enums.RentedPer;
 import com.grizzly.application.models.enums.FormFieldType;
+import jakarta.validation.constraints.NotNull;
 
+import javax.imageio.ImageIO;
 import javax.persistence.*;
 import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.URISyntaxException;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * Equipment base class
+ */
 @Entity(name = "Equipment")
 @Table(name = "Equipment")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -26,12 +40,12 @@ public class Equipment implements Serializable, ITableEntity {
     @Column(name = "name")
     protected String name;
 
-    @Column(name = "image")
     @Transient
+    @Column(name = "image")
     protected ImageIcon image;
+
     @Column(name = "description")
     protected String description;
-
     @Enumerated(EnumType.STRING)
     protected RentalStatus rentalStatus;
     @Column(name = "category")
@@ -41,13 +55,16 @@ public class Equipment implements Serializable, ITableEntity {
     @Column(name = "rentedPer")
     @Enumerated(EnumType.STRING)
     protected RentedPer rentedPer;
-    @Transient
-    protected List<MaintenanceLog> maintenanceLogs;
+    @Enumerated(EnumType.STRING)
+    protected Condition condition;
     @Column(name = "type")
     protected String type;
     @Column(name = "nextAvailableDate")
     protected LocalDateTime nextAvailableDate;
 
+    /**
+     * Default constructor
+     */
     public Equipment() {
         equipmentId = "";
         name = "";
@@ -58,44 +75,73 @@ public class Equipment implements Serializable, ITableEntity {
         nextAvailableDate = LocalDateTime.now();
         rentedPer = RentedPer.DAY;
         rentalStatus = RentalStatus.AVAILABLE;
+        condition = Condition.EXCELLENT;
+        setDefaultImage();
     }
 
-    public Equipment(String equipmentId, String name, String description, String category, Double price,
-                     List<MaintenanceLog> maintenanceLogs, String type, LocalDateTime nextAvailableDate, RentedPer rentedPer, RentalStatus rentalStatus) {
+    /**
+     * Creates an equipment data class
+     *
+     * @param equipmentId
+     * @param name
+     * @param description
+     * @param category
+     * @param price
+     * @param type
+     * @param nextAvailableDate
+     * @param rentedPer
+     * @param rentalStatus
+     */
+    public Equipment(ImageIcon image, String equipmentId, String name, String description, Condition condition, String category, Double price,
+                     String type, LocalDateTime nextAvailableDate, RentedPer rentedPer, RentalStatus rentalStatus) {
         this.equipmentId = equipmentId;
         this.name = name;
         this.description = description;
         this.category = category;
         this.price = price;
-        this.maintenanceLogs = maintenanceLogs;
         this.type = type;
         this.nextAvailableDate = nextAvailableDate;
         this.rentedPer = rentedPer;
         this.rentalStatus = rentalStatus;
-
-
+        this.condition = condition;
+        this.image = image;
+        setDefaultImage();
     }
 
+    /**
+     * COpy constructor
+     *
+     * @param other equipment to copy
+     */
     public Equipment(Equipment other) {
         this.equipmentId = other.equipmentId;
         this.name = other.name;
         this.description = other.description;
         this.category = other.category;
         this.price = other.price;
-        this.maintenanceLogs = new ArrayList<>(other.maintenanceLogs); // Copy the list
         this.type = other.type;
         this.nextAvailableDate = other.nextAvailableDate;
         this.rentedPer = other.rentedPer;
+        this.image = other.image;
         this.rentalStatus = other.rentalStatus;
+        this.condition = other.condition;
+        setDefaultImage();
     }
 
+    public Condition getCondition() {
+        return condition;
+    }
+
+    public void setCondition(Condition condition) {
+        this.condition = condition;
+    }
 
     public String getEquipmentId() {
         return equipmentId;
     }
 
-    public void setEquipmentId(String id) {
-        this.equipmentId = id;
+    public void setEquipmentId(String equipmentId) {
+        this.equipmentId = equipmentId;
     }
 
     public String getName() {
@@ -105,6 +151,7 @@ public class Equipment implements Serializable, ITableEntity {
     public void setName(String name) {
         this.name = name;
     }
+
 
     public String getDescription() {
         return description;
@@ -134,14 +181,6 @@ public class Equipment implements Serializable, ITableEntity {
         this.price = price.doubleValue();
     }
 
-    public List<MaintenanceLog> getMaintenanceLogs() {
-        return maintenanceLogs;
-    }
-
-    public void setMaintenanceLogs(List<MaintenanceLog> maintenanceLogs) {
-        this.maintenanceLogs = maintenanceLogs;
-    }
-
     public String getType() {
         return type;
     }
@@ -156,14 +195,6 @@ public class Equipment implements Serializable, ITableEntity {
 
     public void setNextAvailableDate(LocalDateTime nextAvailableDate) {
         this.nextAvailableDate = nextAvailableDate;
-    }
-
-    public MaintenanceLog getLastMaintenanceLog() {
-        return maintenanceLogs.get(maintenanceLogs.size() - 1);
-    }
-
-    public Condition getCondition() {
-        return getLastMaintenanceLog().getCondition();
     }
 
     public RentedPer getRentedPer() {
@@ -190,35 +221,50 @@ public class Equipment implements Serializable, ITableEntity {
         this.rentalStatus = RentalStatus.valueOf(rentalStatus);
     }
 
+    public ImageIcon getImage() {
+        return image;
+    }
+
+    public void setImage(ImageIcon image) {
+        this.image = image;
+    }
+
+
+    private void setDefaultImage() {
+        if (image != null) return;
+        try {
+            ClassLoader loader = this.getClass().getClassLoader();
+            image = new ImageIcon(ImageIO.read(new File(Objects.requireNonNull(loader.getResource("media/images/equipment-placeholder.png")).toURI().getPath())));
+        } catch (IOException | URISyntaxException e) {
+
+        }
+    }
 
     @Override
     public String toString() {
         return "Equipment{" +
-                "id='" + equipmentId + '\'' +
+                "equipmentId='" + equipmentId + '\'' +
                 ", name='" + name + '\'' +
+                ", image=" + image +
                 ", description='" + description + '\'' +
                 ", rentalStatus=" + rentalStatus +
                 ", category='" + category + '\'' +
                 ", price=" + price +
                 ", rentedPer=" + rentedPer +
-                ", maintenanceLogs=" + maintenanceLogs +
+                ", condition=" + condition +
                 ", type='" + type + '\'' +
                 ", nextAvailableDate=" + nextAvailableDate +
                 '}';
     }
 
-    private void cfgTable() {
-
-    }
-
     @Override
     public Object[] getValues() {
-        return new Object[]{equipmentId, name, description, category, price, type, rentedPer, rentalStatus, nextAvailableDate};
+        return new Object[]{equipmentId, name, description, condition, category, price, type, rentedPer, rentalStatus, nextAvailableDate.format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a"))};
     }
 
     @Override
     public String[] getTableTitles() {
-        return new String[]{"Id", "Name", "Description", "Category", "Price", "Type", "Rented Per", "Rental Status", "Next Available Date"};
+        return new String[]{"Id", "Name", "Description", "Condition", "Category", "Price", "Type", "Rented Per", "Rental Status", "Next Available Date"};
     }
 
     @Override
@@ -243,6 +289,9 @@ public class Equipment implements Serializable, ITableEntity {
         FieldConfig description = new FieldConfig(String.class, "setDescription", "getDescription", "Description:", FormFieldType.LONGTEXT, 350.0, 0.0);
         fcs.add(description);
 
+        FieldConfig cdn = new FieldConfig(Condition.class, "setCondition", "getCondition", "Condition:", FormFieldType.SELECT, Condition.values());
+        fcs.add(cdn);
+
         FieldConfig category = new FieldConfig(String.class, "setCategory", "getCategory", "Category:", FormFieldType.TEXT);
         fcs.add(category);
 
@@ -261,7 +310,7 @@ public class Equipment implements Serializable, ITableEntity {
         fcs.add(status);
 
         FieldConfig nextAvailable = new FieldConfig(String.class, "setNextAvailableDate", "getNextAvailableDate", "Next Available Date:", FormFieldType.DATE);
-        nextAvailable.addConstraint(new Constraint(Constraint.NOT_NULL, "Type cannot be empty!"));
+        nextAvailable.addConstraint(new Constraint(Constraint.NOT_NULL, "Next available date cannot be empty!"));
         fcs.add(nextAvailable);
 
         return fcs;
