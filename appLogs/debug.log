@@ -1,0 +1,26 @@
+2023-11-17 20:42:35 INFO  FontLoader:74 - Font loaded successfully!
+2023-11-17 20:42:35 INFO  FontLoader:74 - Font loaded successfully!
+2023-11-17 20:42:35 INFO  FontLoader:74 - Font loaded successfully!
+2023-11-17 20:42:35 INFO  FontLoader:74 - Font loaded successfully!
+2023-11-17 20:42:35 INFO  FontLoader:74 - Font loaded successfully!
+2023-11-17 20:42:35 INFO  FontLoader:74 - Font loaded successfully!
+2023-11-17 20:42:35 INFO  AppController:49 - Fonts Updated
+2023-11-17 20:42:35 INFO  AppController:56 - Color Schemes Updated
+2023-11-17 20:42:35 INFO  AppController:57 - Theme Updated
+2023-11-17 20:42:37 ERROR Client:42 - Connection Error
+2023-11-17 20:42:37 ERROR Client:43 - java.net.ConnectException: Connection refused: connect
+2023-11-17 20:42:38 INFO  Client:105 - Sent queue object: READ-ALL EQUIPMENT
+2023-11-17 20:42:38 INFO  Client:82 - Sent Request: READ-ALL EQUIPMENT
+2023-11-17 20:42:38 INFO  Client:82 - Sent Request: READ-ALL RENTALREQUEST
+2023-11-17 20:42:39 INFO  Client:82 - Sent Request: READ-ALL SOUND
+2023-11-17 20:42:39 INFO  Client:82 - Sent Request: READ-ALL STAGE
+2023-11-17 20:42:39 INFO  Client:82 - Sent Request: READ-ALL LIGHT
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL POWER
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL CUSTOMER
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL EMPLOYEE
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL INVOICE
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL RENTALREQUEST
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL TRANSACTION
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL INVOICEITEM
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL LIGHT
+2023-11-17 20:42:40 INFO  Client:82 - Sent Request: READ-ALL CUSTOMER
