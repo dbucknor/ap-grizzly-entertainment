@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Objects;
+import java.util.TimerTask;
 
 public class MainWindow implements IView {
     private JFrame frame;
@@ -80,16 +81,16 @@ public class MainWindow implements IView {
         cardLayout.addLayoutComponent(customerScreen, CUSTOMER_SCREEN);
         cardLayout.addLayoutComponent(employeeScreen, EMPLOYEE_SCREEN);
 
-        cardLayout.show(frame.getContentPane(), CUSTOMER_SCREEN);
-//        cardLayout.show(frame.getContentPane(), CUSTOMER_SCREEN);
+        cardLayout.show(frame.getContentPane(), LOAD_SCREEN);
+
 //
-//        Timer timer = new Timer("load-screen-timer");
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                switchFromLoading();
-//            }
-//        }, 5000);
+        java.util.Timer timer = new java.util.Timer("load-screen-timer");
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                switchFromLoading();
+            }
+        }, 5000);
     }
 
     private void switchFromLoading() {
