@@ -117,7 +117,7 @@ public class MainWindow implements IView {
     }
 
     private void switchFromLoading() {
-        cardLayout.show(frame.getContentPane(), CUSTOMER_SCREEN);
+        cardLayout.show(frame.getContentPane(), SIGN_IN);
     }
 
     public void addListeners() {
