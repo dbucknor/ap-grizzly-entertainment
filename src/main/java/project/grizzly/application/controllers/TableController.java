@@ -1,12 +1,13 @@
 package project.grizzly.application.controllers;
 
-import project.grizzly.application.models.*;
 import project.grizzly.application.models.interfaces.ITableController;
 import project.grizzly.application.models.interfaces.ITableEntity;
 import project.grizzly.application.models.interfaces.TableUpdateListener;
 import project.grizzly.application.services.Client;
 import project.grizzly.application.services.CombinedQuery;
 import project.grizzly.application.models.TableConfig;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
 import javax.persistence.Id;
 import javax.swing.*;
@@ -73,11 +74,11 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
     public void insertRecord(T record) {
         executorService.submit(() -> {
             try {
-                client.sendAction("ADD " + clazz.getSimpleName().toUpperCase());
-                client.send(record);
+                client.sendRequest(new Request("ADD", clazz.getSimpleName().toUpperCase(), record));
+//                client.send(record);
 
-                Object isCreated = client.receiveResponse();
-                refreshData();
+                Object isCreated = ((Response) client.receiveResponse()).getValue();
+
 
                 SwingUtilities.invokeLater(() -> {
                     if (isCreated instanceof Boolean && (Boolean) isCreated) {
@@ -86,7 +87,7 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
                         JOptionPane.showMessageDialog(null, "Error! Record Not Created!");
                     }
                 });
-
+                refreshData();
             } catch (Exception e) {
                 logger.error("Error creating record");
                 logger.error(e.getMessage());
@@ -103,9 +104,9 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         try {
             Future<T> future = executorService.submit((Callable<T>) () -> {
                 try {
-                    client.sendAction("READ " + clazz.getSimpleName().toUpperCase());
-                    client.send(id);
-                    Object o = client.receiveResponse();
+                    client.sendRequest(new Request("READ", clazz.getSimpleName().toUpperCase(), id));
+//                    client.send(id);
+                    Object o = ((Response) client.receiveResponse()).getValue();
 
                     return (T) o;
 
@@ -133,9 +134,9 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
     public void updateRecord(T record) {
         executorService.submit(() -> {
             try {
-                client.sendAction("UPDATE " + clazz.getSimpleName().toUpperCase());
-                client.send(record);
-                Object isUpdated = client.receiveResponse();
+                client.sendRequest(new Request("UPDATE", clazz.getSimpleName().toUpperCase(), record));
+//                client.send(record);
+                Object isUpdated = ((Response) client.receiveResponse()).getValue();
 
                 SwingUtilities.invokeLater(() -> {
                     if (isUpdated instanceof Boolean && (Boolean) isUpdated) {
@@ -162,10 +163,10 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         ) {
             executorService.submit(() -> {
                 try {
-                    client.sendAction("DELETE " + clazz.getSimpleName().toUpperCase());
-                    client.send(id);
-
-                    Object isDeleted = client.receiveResponse();
+                    client.sendRequest(new Request("DELETE", clazz.getSimpleName().toUpperCase(), id));
+//                    client.send(id);
+                    Response res = (Response) client.receiveResponse();
+                    Object isDeleted = res.getValue();
 
                     SwingUtilities.invokeLater(() -> {
                         if (isDeleted instanceof Boolean && (Boolean) isDeleted) {
@@ -191,8 +192,9 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
     @Override
     public List<T> fetchTableData() {
         try {
-            client.sendAction("READ-ALL " + clazz.getSimpleName().toUpperCase());
-            Object o = client.receiveResponse();
+            client.sendRequest(new Request("READ-ALL", clazz.getSimpleName().toUpperCase(), null));
+            Response res = (Response) client.receiveResponse();
+            Object o = res.getValue();
             return o != null ? (List<T>) o : new ArrayList<>();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -217,7 +219,8 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
             List<T> records = fetchTableData();
 
             SwingUtilities.invokeLater(() -> {
-                allRecords = records.stream().map((u) -> clazz.cast(u)).toList();
+                allRecords = records.stream().map((u) -> clazz.
+                        cast(u)).toList();
                 tableConfig.setTableData(recordsAsObjects(allRecords));
                 updateListeners();
             });
@@ -236,11 +239,10 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
             String idName = Objects.requireNonNull(findIdField()).getName();
             executorService.submit(() -> {
                 try {
-                    client.sendAction("READ-WHERE " + clazz.getSimpleName().toUpperCase());
-                    client.send(new CombinedQuery<T>("SELECT t FROM " + clazz.getSimpleName() + " t")
-                            .like("t." + idName, " LIKE :value", id));
+                    client.sendRequest(new Request("READ-WHERE", clazz.getSimpleName().toUpperCase(), new CombinedQuery<T>("SELECT t FROM " + clazz.getSimpleName() + " t")
+                            .like("t." + idName, " LIKE :value", id)));
 
-                    Object res = client.receiveResponse();
+                    Object res = ((Response) client.receiveResponse()).getValue();
 
                     SwingUtilities.invokeLater(() -> {
                         filteredRecords = res != null ? (List<T>) res : new ArrayList<>();

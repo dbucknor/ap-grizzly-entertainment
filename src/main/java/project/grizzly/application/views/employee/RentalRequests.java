@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RentalRequests extends JPanel implements IView {
-    private TableController<RentalRequest, String> controller;
+    private TableController<RentalRequest, Integer> controller;
     JScrollPane scrollPane;
     JLabel label;
     JPanel requests, mainPanel;

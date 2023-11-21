@@ -1,6 +1,8 @@
 package project.grizzly.application.services;
 
 import project.grizzly.application.models.User;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,14 +55,18 @@ public class AuthService implements IAuth<User> {
     public User logIn(String email, String password) throws AuthException {
         try {
 //            client.getStreams();
-            client.sendAction("READ-WHERE USER");
-            client.send(new CombinedQuery<User>("SELECT u FROM User u")
-                    .where("u.email", "=:email", email));
+            CombinedQuery<User> combinedQuery = new CombinedQuery<User>("SELECT u FROM User u")
+                    .where("u.email", "=:email", email);
 
-            Object results = client.receiveResponse();
+            client.sendRequest(new Request("READ-WHERE", "USER", combinedQuery));
+
+
+            Object res = ((Response) client.receiveResponse()).getValue();
 //            client();
 
-            User usr = results == null ? null : ((List<User>) results).get(0);
+            List<User> results = (List<User>) res;
+
+            User usr = results == null || results.isEmpty() ? null : results.get(0);
 
             if (usr != null) {
                 if (usr.getPassword().compareTo(password) != 0) {

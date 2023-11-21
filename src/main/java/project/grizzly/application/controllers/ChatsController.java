@@ -3,6 +3,8 @@ package project.grizzly.application.controllers;
 import project.grizzly.application.models.Chat;
 import project.grizzly.application.services.Client;
 import project.grizzly.application.services.ThreadService;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +35,9 @@ public class ChatsController {
 
     public Chat readChat(String chatId) {
         Future<Chat> future = ThreadService.executor.submit((Callable<Chat>) () -> {
-            client.sendAction("READ CHAT");
-            client.send(chatId);
-            return (Chat) client.receiveResponse();
+            client.sendRequest(new Request("READ", "CHAT", chatId));
+//            client.send(chatId);
+            return (Chat) ((Response) client.receiveResponse()).getValue();
         });
 
         try {

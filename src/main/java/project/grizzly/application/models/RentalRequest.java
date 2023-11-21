@@ -13,6 +13,7 @@ import java.util.List;
 @Table(name = "rentalrequest")
 public class RentalRequest implements Serializable, ITableEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "requestId")
     private Integer requestId;
     @Column(name = "requestDate")

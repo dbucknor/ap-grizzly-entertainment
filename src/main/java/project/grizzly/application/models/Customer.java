@@ -24,7 +24,8 @@ public class Customer extends User {
     private Set<Invoice> invoices;
     @OneToMany(mappedBy = "requestFrom", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<RentalRequest> sentRequests;
-
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Transaction> transactions;
 
     //Default Constructor
     public Customer() {
@@ -32,6 +33,7 @@ public class Customer extends User {
         this.address = "";
         this.phoneNumber = "";
         invoices = new HashSet<>();
+        transactions = new HashSet<>();
     }
 
     public Customer(String userId, String customerId, String email, String password, String firstName, String lastName, boolean loggedIn, UserType accountType, String address, String phoneNumber) {
@@ -42,6 +44,7 @@ public class Customer extends User {
         this.invoices = new HashSet<>();
         this.messages = new HashSet<>();
         this.sentRequests = new HashSet<>();
+        this.transactions = new HashSet<>();
     }
 
     public Customer(Customer customer) {
@@ -51,6 +54,7 @@ public class Customer extends User {
         this.phoneNumber = customer.phoneNumber;
         this.invoices = customer.invoices;
         this.sentRequests = customer.sentRequests;
+        this.transactions = customer.transactions;
     }
 
     //Setters and Getters
@@ -65,6 +69,14 @@ public class Customer extends User {
 
     public Set<Invoice> getInvoices() {
         return invoices;
+    }
+
+    public Set<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(Set<Transaction> transactions) {
+        this.transactions = transactions;
     }
 
     public void setInvoices(Set<Invoice> invoices) {

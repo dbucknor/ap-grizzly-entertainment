@@ -24,6 +24,10 @@ public class Transaction implements Serializable, ITableEntity {
     @Column(name = "transactionDate")
     private LocalDateTime transactionDate;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ownerId")
+    private Customer owner;
+
     public Transaction() {
         this.transactionId = 0;
         this.balance = 0.0;
@@ -48,6 +52,18 @@ public class Transaction implements Serializable, ITableEntity {
         this.transactionDate = transaction.transactionDate;
     }
 
+    public void setTransactionId(int transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public Customer getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Customer owner) {
+        this.owner = owner;
+    }
+
     public Integer getTransactionId() {
         return transactionId;
     }
@@ -70,6 +86,7 @@ public class Transaction implements Serializable, ITableEntity {
 
     public void setPaid(Double paid) {
         this.paid = paid;
+        setBalance(getTotalPrice() - paid);
     }
 
     public Double getBalance() {
@@ -78,6 +95,7 @@ public class Transaction implements Serializable, ITableEntity {
 
     public void setBalance(Double balance) {
         this.balance = balance;
+        setPaid(getTotalPrice() - balance);
     }
 
     public void calculateBalance() {
@@ -122,7 +140,7 @@ public class Transaction implements Serializable, ITableEntity {
         return this.getRequest().getRequestFrom().getCustomerId();
     }
 
-    public Double getTotalPrice(Double price) {
+    public Double getTotalPrice() {
         return this.getRequest().getInvoice().getTotalPrice();
     }
 

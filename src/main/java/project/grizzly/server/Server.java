@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.*;
@@ -67,6 +69,10 @@ public class Server extends Thread {
                     logger.info("Clients connected: " + clientCount);
                 });
 
+            } catch (SocketException e) {
+                logger.error(e.getMessage());
+                clientCount--;
+                logger.info("Clients connected: " + clientCount);
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }
@@ -83,6 +89,10 @@ class ClientHandler {
     private HashMap<String, CRUDService> cruds;
     ObjectInputStream inputStream;
     ObjectOutputStream outputStream;
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    private final BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Response> responseQueue = new LinkedBlockingQueue<>(1);
 
     /**
      * Constructor
@@ -103,103 +113,141 @@ class ClientHandler {
         try {
             outputStream = new ObjectOutputStream(connection.getOutputStream());
             inputStream = new ObjectInputStream(connection.getInputStream());
-
+            System.out.println("Strems connected");
             while (true) {
-                String request = (String) inputStream.readObject();
+                Request request = (Request) inputStream.readObject();
+//                System.out.println(request);
 
-                if (request.compareTo("EXIT") == 0) {
+                if (request.getAction().compareTo("EXIT") == 0) {
                     closeStreams();
                     closeClientConnection();
                     break;
                 }
-                handleRequest(request);
+//                System.out.println("hererr");
+
+                try {
+                    processRequest(request);
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                }
+
+                executorService.submit(() -> {
+                    try {
+                        handleRequest();
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                });
+
             }
         } catch (IOException | ClassNotFoundException ex) {
             logger.error(ex.getMessage());
         }
     }
 
+    private void processRequest(Request request) throws IOException {
+        try {
+            logger.info(request);
+            if (request == null) throw new IOException("Invalid Request");
+
+            if (request.getAction().trim().isEmpty() || request.getEntity().trim().isEmpty()) {
+                throw new IOException("Invalid Request!");
+            }
+            System.out.println("Servre processing");
+            requestQueue.put(request);
+
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
     /**
      * Handles client request
      *
-     * @param request request received
      * @throws IOException
      * @throws ClassNotFoundException
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void handleRequest(String request) throws IOException, ClassNotFoundException {
+    private void handleRequest() throws IOException, ClassNotFoundException {
 
-        logger.info(request);
-        if (request == null) throw new IOException("Invalid Request Action");
+        try {
+            Request req = requestQueue.take();
 
-        String action = request.split(" ")[0].trim();
-        String entity = request.split(" ")[1].trim();
+            logger.info("Processing: " + req);
 
-        if (action.trim().isEmpty() || entity.trim().isEmpty()) {
-            throw new IOException("Invalid Request Action");
-        }
+            var crud = cruds.get(req.getEntity());
 
-        var crud = cruds.get(entity);
+            if (req.getAction().compareTo("ADD") == 0) {
+                crud.insert((Serializable) crud.getClazz().cast(req.getInputObject()));
+                addToResponseQueue(new Response(req, true));
+                processResponse();
+                return;
+            }
+            if (req.getAction().compareTo("UPDATE") == 0) {
+                crud.update((Serializable) req.getInputObject());
+                addToResponseQueue(new Response(req, true));
+                processResponse();
+                return;
+            }
+            if (req.getAction().compareTo("READ") == 0) {
+                Object obj = crud.read((Serializable) req.getInputObject());
+                logger.info("READING");
+                addToResponseQueue(new Response(req, obj));
+                processResponse();
+                return;
+            }
+            if (req.getAction().compareTo("READ-ALL") == 0) {
+                logger.info("READING All");
+                List<Object> objs = crud.readAll();
+                addToResponseQueue(new Response(req, objs));
+                processResponse();
+                return;
+            }
+            if (req.getAction().compareTo("READ-WHERE") == 0) {
+                List<Object> objs = new ArrayList<>();
 
-        if (action.compareTo("ADD") == 0) {
-            Object o = inputStream.readObject();
-            crud.insert((Serializable) crud.getClazz().cast(o));
-            writeToStream(true);
-        }
-        if (action.compareTo("UPDATE") == 0) {
-            Object o = inputStream.readObject();
-            crud.update((Serializable) o);
-            writeToStream(true);
-        }
-        if (action.compareTo("READ") == 0) {
-            Object o = inputStream.readObject();
-            Object obj = crud.read((Serializable) o);
-            logger.info("READING");
-            writeToStream(obj);
-        }
-        if (action.compareTo("READ-ALL") == 0) {
-            logger.info("READING All");
-            List<Object> objs = crud.readAll();
-            writeToStream(objs);
-        }
-        if (action.compareTo("READ-WHERE") == 0) {
-            List<Object> objs;
-
-            Object o = inputStream.readObject();
-            if (o instanceof CombinedQuery) {
                 objs = crud.readWhere((s) ->
-                        ((CombinedQuery) o).getQuery((Session) s)
+                        ((CombinedQuery) req.getInputObject()).getQuery((Session) s)
                 );
-            } else {
-                objs = crud.readWhere((s) -> o);
+                addToResponseQueue(new Response(req, objs));
+
+                processResponse();
+                return;
             }
-            writeToStream(objs);
-        }
 
-        if (action.compareTo("DELETE") == 0) {
-            Object o = inputStream.readObject();
-            crud.delete((Serializable) o);
-            writeToStream(true);
-        }
-
-        if (action.compareTo("DELETE-WHERE") == 0) {
-            Object o = inputStream.readObject();
-            if (o instanceof CombinedQuery) {
-                crud.delete((s) ->
-                        ((CombinedQuery) o).getQuery((Session) s)
-                );
-            } else {
-                crud.delete((s) ->
-                        o
-                );
+            if (req.getAction().compareTo("DELETE") == 0) {
+                crud.delete((Serializable) req.getInputObject());
+                addToResponseQueue(new Response(req, true));
+                processResponse();
+                return;
             }
-            writeToStream(true);
-        }
 
+            if (req.getAction().compareTo("DELETE-WHERE") == 0) {
+                if (req.getInputObject() instanceof CombinedQuery) {
+                    crud.delete((s) ->
+                            ((CombinedQuery) req.getInputObject()).getQuery((Session) s)
+                    );
+                }
+                addToResponseQueue(new Response(req, true));
+                processResponse();
+            }
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);//todo
+        }
+    }
+
+    private void processResponse() {
+        try {
+            Response o = responseQueue.take();
+            writeToStream(o);
+        } catch (InterruptedException e) {
+            e.printStackTrace();//todo
+        }
     }
 
     /**
-     * Wtire object to output stream
+     * Write object to output stream
      *
      * @param o object to write
      */
@@ -208,6 +256,14 @@ class ClientHandler {
             outputStream.writeObject(o);
         } catch (IOException e) {
             logger.error(e.getMessage());
+        }
+    }
+
+    private void addToResponseQueue(Response response) {
+        try {
+            responseQueue.put(response);
+        } catch (InterruptedException e) {
+            e.printStackTrace();//todo
         }
     }
 
@@ -234,3 +290,4 @@ class ClientHandler {
         }
     }
 }
+

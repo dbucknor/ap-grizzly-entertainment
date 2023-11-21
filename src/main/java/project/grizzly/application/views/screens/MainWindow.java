@@ -1,11 +1,14 @@
 package project.grizzly.application.views.screens;
 
 import project.grizzly.application.models.User;
+import project.grizzly.application.models.enums.UserType;
 import project.grizzly.application.models.interfaces.IView;
 import project.grizzly.application.services.AuthChangedListener;
 import project.grizzly.application.services.AuthService;
 import project.grizzly.application.theme.ThemeManager;
 import project.grizzly.application.views.components.CustomCardLayout;
+import project.grizzly.application.views.components.TransactionDialog;
+import project.grizzly.application.views.components.UserRequests;
 import project.grizzly.application.views.customer.CustomerScreen;
 import project.grizzly.application.views.employee.EmployeeScreen;
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +17,9 @@ import org.apache.logging.log4j.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +44,9 @@ public class MainWindow implements IView {
     private final String SIGN_IN = "Sign-In";
     private final String EMPLOYEE_SCREEN = "Employee-Screen";
     private final String CUSTOMER_SCREEN = "Customer-Screen";
+    private JMenuItem viewTransactions, viewRequests;
+    private JMenu fileMenu;
+    private JMenuBar menuBar;
 
     public MainWindow() {
         themeManager = ThemeManager.getInstance();
@@ -68,6 +77,19 @@ public class MainWindow implements IView {
         employeeScreen = new EmployeeScreen();
         frame.setLayout(cardLayout);
 
+        menuBar = new JMenuBar();
+        fileMenu = new JMenu("File");
+        viewTransactions = new JMenuItem("View Transactions");
+        viewRequests = new JMenuItem("View Rental Requests");
+
+        viewTransactions.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK));
+        viewRequests.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK));
+
+        fileMenu.add(viewTransactions);
+        fileMenu.add(viewRequests);
+        menuBar.add(fileMenu);
+
+
     }
 
     public void addComponents() {
@@ -75,6 +97,7 @@ public class MainWindow implements IView {
         frame.add(signIn);
         frame.add(customerScreen);
         frame.add(employeeScreen);
+        frame.setJMenuBar(menuBar);
 
         cardLayout.addLayoutComponent(loadScreen, LOAD_SCREEN);
         cardLayout.addLayoutComponent(signIn, SIGN_IN);
@@ -94,7 +117,7 @@ public class MainWindow implements IView {
     }
 
     private void switchFromLoading() {
-        cardLayout.show(frame.getContentPane(), SIGN_IN);
+        cardLayout.show(frame.getContentPane(), CUSTOMER_SCREEN);
     }
 
     public void addListeners() {
@@ -112,6 +135,29 @@ public class MainWindow implements IView {
                             default -> cardLayout.show(frame.getContentPane(), SIGN_IN);
                         }
                     }
+                }
+            }
+        });
+
+        viewTransactions.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                User user = AuthService.getInstance().getLoggedInUser();
+                new TransactionDialog();
+
+                if (user != null && user.getAccountType() == UserType.CUSTOMER) {
+                    new TransactionDialog();
+                }
+            }
+        });
+
+        viewRequests.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                User user = AuthService.getInstance().getLoggedInUser();
+                new UserRequests();
+                if (user != null && user.getAccountType() == UserType.CUSTOMER) {
+                    new UserRequests();
                 }
             }
         });

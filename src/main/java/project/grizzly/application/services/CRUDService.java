@@ -207,4 +207,11 @@ public class CRUDService<T extends Serializable, K extends Serializable> impleme
     public void setClazz(Class<T> clazz) {
         this.clazz = clazz;
     }
+
+    @Override
+    public String toString() {
+        return "CRUDService{" +
+                "clazz=" + clazz +
+                '}';
+    }
 }

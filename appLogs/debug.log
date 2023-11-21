@@ -1,28 +1,15 @@
-2023-11-17 21:07:02 INFO  FontLoader:74 - Font loaded successfully!
-2023-11-17 21:07:02 INFO  FontLoader:74 - Font loaded successfully!
-2023-11-17 21:07:02 INFO  FontLoader:74 - Font loaded successfully!
-2023-11-17 21:07:02 INFO  FontLoader:74 - Font loaded successfully!
-2023-11-17 21:07:02 INFO  FontLoader:74 - Font loaded successfully!
-2023-11-17 21:07:02 INFO  FontLoader:74 - Font loaded successfully!
-2023-11-17 21:07:02 INFO  AppController:49 - Fonts Updated
-2023-11-17 21:07:02 INFO  AppController:56 - Color Schemes Updated
-2023-11-17 21:07:02 INFO  AppController:57 - Theme Updated
-2023-11-17 21:07:04 ERROR Client:42 - Connection Error
-2023-11-17 21:07:04 ERROR Client:43 - java.net.ConnectException: Connection refused: connect
-2023-11-17 21:07:05 INFO  Client:82 - Sent Request: READ-ALL EQUIPMENT
-2023-11-17 21:07:05 INFO  Client:105 - Sent queue object: READ-ALL EQUIPMENT
-2023-11-17 21:07:05 INFO  Client:82 - Sent Request: READ-ALL RENTALREQUEST
-2023-11-17 21:07:06 INFO  Client:82 - Sent Request: READ-ALL SOUND
-2023-11-17 21:07:06 INFO  Client:82 - Sent Request: READ-ALL STAGE
-2023-11-17 21:07:06 INFO  Client:82 - Sent Request: READ-ALL LIGHT
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL POWER
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL CUSTOMER
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL EMPLOYEE
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL INVOICE
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL RENTALREQUEST
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL TRANSACTION
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL INVOICEITEM
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL LIGHT
-2023-11-17 21:07:07 INFO  Client:82 - Sent Request: READ-ALL CUSTOMER
-2023-11-17 21:07:15 INFO  Client:82 - Sent Request: READ-WHERE USER
-2023-11-17 21:07:15 INFO  Client:93 - Sent object: project.grizzly.application.services.CombinedQuery@17c6f360
+2023-11-21 12:35:32 INFO  ICRUD:101 - Server Read records: [User{userId='123qwe', email='customer@mail.com', password='customer123', firstName='New', lastName='Customer', loggedIn=false, type=CUSTOMER}]
+2023-11-21 12:35:33 INFO  Client:108 - Sent queue object: Request{action='READ-ALL', entity='LIGHT', inputObject=null}
+2023-11-21 12:35:33 INFO  Client:134 - Response  received: Response{request=Request{action='READ-ALL', entity='CUSTOMER', inputObject=null}, response=[User{userId='123qwe', email='customer@mail.com', password='customer123', firstName='New', lastName='Customer', loggedIn=false, type=CUSTOMER}]}
+2023-11-21 12:35:33 INFO  ClientHandler:150 - Request{action='READ-ALL', entity='LIGHT', inputObject=null}
+2023-11-21 12:35:33 INFO  ClientHandler:176 - Processing: Request{action='READ-ALL', entity='LIGHT', inputObject=null}
+2023-11-21 12:35:33 INFO  ClientHandler:200 - READING All
+2023-11-21 12:35:33 INFO  ICRUD:101 - Server Read records: [Light [lumens=5200, wattage=200.0, voltage=220, toString()=Equipment{equipmentId='LT-S-7357', name='A Light', image=javax.swing.ImageIcon@7c538099, description='Very bright light used for spacial lighting.', rentalStatus=AVAILABLE, category='Light', price=12000.0, rentedPer=DAY, condition=EXCELLENT, type='null', nextAvailableDate=2023-11-20T18:55:30}]]
+2023-11-21 12:35:34 INFO  Client:134 - Response  received: Response{request=Request{action='READ-ALL', entity='LIGHT', inputObject=null}, response=[Light [lumens=5200, wattage=200.0, voltage=220, toString()=Equipment{equipmentId='LT-S-7357', name='A Light', image=javax.swing.ImageIcon@1a40ed96, description='Very bright light used for spacial lighting.', rentalStatus=AVAILABLE, category='Light', price=12000.0, rentedPer=DAY, condition=EXCELLENT, type='null', nextAvailableDate=2023-11-20T18:55:30}]]}
+2023-11-21 12:35:37 INFO  ITableController:78 - Item added: InvoiceItem{invoiceItemId=0, equipment=Light [lumens=5200, wattage=200.0, voltage=220, toString()=Equipment{equipmentId='LT-S-7357', name='A Light', image=javax.swing.ImageIcon@27205394, description='Very bright light used for spacial lighting.', rentalStatus=AVAILABLE, category='Light', price=12000.0, rentedPer=DAY, condition=EXCELLENT, type='null', nextAvailableDate=2023-11-20T18:55:30}], quantity=1, approved=false, totalPrice=null, invoice=project.grizzly.application.models.Invoice@1a0f285b}
+2023-11-21 12:35:37 INFO  ITableController:100 - Items refreshed
+2023-11-21 12:35:40 INFO  Client:83 - Added to queue Request: Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@41117f62}
+2023-11-21 12:35:41 INFO  Client:108 - Sent queue object: Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@41117f62}
+2023-11-21 12:35:41 INFO  ClientHandler:150 - Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@50d9414e}
+2023-11-21 12:35:41 INFO  ClientHandler:176 - Processing: Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@50d9414e}
+2023-11-21 12:35:41 ERROR ICRUD:40 - could not execute statement

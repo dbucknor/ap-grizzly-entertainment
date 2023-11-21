@@ -7,22 +7,23 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 public class CombinedQuery<T> implements Serializable {
-    private Query<T> query;
+
+    private transient Query<T> query;
     private String queryString;
-    HashMap<String, Object> values;
+    private HashMap<String, Object> values;
 
     public CombinedQuery(String clause) {
         this.queryString = clause;
         this.values = new HashMap<>();
     }
 
-    public CombinedQuery<T> where(String param, String comparison, Object value) {
+    public CombinedQuery<T> where(String param, String comparison, Serializable value) {
         queryString = queryString + " WHERE " + param + " " + comparison;
         values.put(comparison.split(":")[1], value);
         return this;
     }
 
-    public CombinedQuery<T> like(String param, String comparison, Object value) {
+    public CombinedQuery<T> like(String param, String comparison, Serializable value) {
         queryString = queryString + " WHERE " + param + " " + comparison.trim() + "LIKE";
         values.put(comparison.split(":")[1] + "LIKE", value);
         return this;
@@ -49,5 +50,14 @@ public class CombinedQuery<T> implements Serializable {
     public Query<T> getQuery(Session session) {
         generateQuery(session);
         return query;
+    }
+
+    @Override
+    public String toString() {
+        return "CombinedQuery{" +
+                "query=" + query +
+                ", queryString='" + queryString + '\'' +
+                ", values=" + values +
+                '}';
     }
 }

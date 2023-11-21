@@ -8,6 +8,7 @@ import project.grizzly.application.models.enums.ButtonSize;
 import project.grizzly.application.models.interfaces.FieldListeners;
 import project.grizzly.application.models.interfaces.IView;
 import project.grizzly.application.theme.ThemeManager;
+import project.grizzly.application.views.components.CartItem;
 import project.grizzly.application.views.components.ListItem;
 import project.grizzly.application.views.components.fields.Button;
 
@@ -40,6 +41,10 @@ public class RequestCart extends Box implements IView {
     public void initializeComponents() {
         itemsLbl = new JLabel("Items To Rent");
         itemsPanel = new Box(BoxLayout.Y_AXIS);
+        itemsPanel.setBackground(theme.getCurrentScheme().getNeutralLight());
+        itemsPanel.setPreferredSize(new Dimension(Double.valueOf(Toolkit.getDefaultToolkit().getScreenSize().width * 0.6).intValue(), Toolkit.getDefaultToolkit().getScreenSize().height));
+        itemsPanel.setMaximumSize(new Dimension(Double.valueOf(Toolkit.getDefaultToolkit().getScreenSize().width * 0.6).intValue(), Toolkit.getDefaultToolkit().getScreenSize().height));
+
         itemsList = new Box(BoxLayout.Y_AXIS);
         scrollPane = new JScrollPane(itemsList);
 
@@ -91,7 +96,7 @@ public class RequestCart extends Box implements IView {
     private void addItems() {
         itemsList.removeAll();
         for (InvoiceItem it : controller.getInvoice().getItems()) {
-            itemsList.add(new ListItem(it, controller));
+            itemsList.add(new CartItem(it));
             itemsList.add(Box.createRigidArea(new Dimension(0, 15)));
             System.out.println("add to view");
         }
@@ -112,13 +117,18 @@ public class RequestCart extends Box implements IView {
         request.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                RentalRequest rr = new RentalRequest(null, LocalDateTime.now(), false, controller.getInvoice(), null);
-                controller.getInvoice().setRentalRequest(rr);
+                if (controller.getInvoice() == null || controller.getInvoice().getItems().isEmpty()) {
+                    return;
+                }
+
+                RentalRequest rentalReq = new RentalRequest(1, LocalDateTime.now(), false, controller.getInvoice(), null);
+                controller.getInvoice().setRentalRequest(rentalReq);
                 controller.getInvoice().setInvoiceDate(LocalDateTime.now());
                 controller.getInvoice().setDiscount(0);
 
-                rr.setInvoice(controller.getInvoice());
-                controller.sendRequest(rr);
+                rentalReq.setInvoice(controller.getInvoice());
+                System.out.println(rentalReq);
+                controller.sendRequest(rentalReq);
             }
         });
 

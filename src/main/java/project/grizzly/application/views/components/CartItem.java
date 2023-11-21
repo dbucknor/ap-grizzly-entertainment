@@ -1,11 +1,13 @@
 package project.grizzly.application.views.components;
 
+import project.grizzly.application.controllers.CustomerScreenController;
 import project.grizzly.application.models.InvoiceItem;
 import project.grizzly.application.models.enums.ButtonSize;
 
 import project.grizzly.application.models.interfaces.IView;
 import project.grizzly.application.theme.ThemeManager;
 import project.grizzly.application.views.components.fields.Button;
+import project.grizzly.application.views.screens.MainWindow;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -25,10 +27,15 @@ public class CartItem extends JPanel implements IView {
         super(new GridBagLayout());
         this.theme = ThemeManager.getInstance();
         this.item = item;
+
+        initializeComponents();
+        addComponents();
+        addListeners();
+        setProperties();
     }
 
     public void initializeComponents() {
-        periodLbl = new JLabel(item.getRentalStartDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")) + "-" + item.getRentalEndDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")));
+        periodLbl = new JLabel(item.getRentalStartDate().format(DateTimeFormatter.ofPattern("EEE, MMM dd, yyyy HH:mm a")) + " - " + item.getRentalEndDate().format(DateTimeFormatter.ofPattern("EEE, MMM dd, yyyy HH:mm a")));
 
         button = new Button("Remove", ButtonSize.SMALL);
         price = new JLabel(Double.toString(item.getTotalPrice()));
@@ -41,8 +48,8 @@ public class CartItem extends JPanel implements IView {
         checkPanel.add(button);
 
         name = new JLabel(item.getEquipment().getName());
-        image = new JLabel("add image");//todo
-//        image = new JLabel(new ImageIcon(image.getScaledInstance(150, 150, Image.SCALE_SMOOTH));//todo
+        image = new JLabel(new ImageIcon(item.getEquipment().getImage().getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH)));//todo
+//        image = new JLabel(image);//todo
     }
 
     public void addComponents() {
@@ -50,24 +57,22 @@ public class CartItem extends JPanel implements IView {
 
         c.gridx = 0;
         c.gridy = 0;
-
         c.gridheight = 5;
         c.gridwidth = 5;
         c.insets = new Insets(0, 0, 0, 5);
         this.add(image, c);
 
-        c.gridx = 1;
+        c.gridx = 6;
         c.gridy = 0;
-        c.gridheight = 4;
+        c.gridheight = 3;
         c.gridwidth = 15;
         this.add(name, c);
 
-        c.gridx = 1;
-        c.gridy = 1;
+        c.gridx = 6;
+        c.gridy = 4;
         c.gridheight = 1;
-
         c.gridwidth = 15;
-        this.add(periodLbl, c);
+        this.add(checkPanel, c);
     }
 
     public void addListeners() {
@@ -75,7 +80,8 @@ public class CartItem extends JPanel implements IView {
         button.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //todo remove from items
+                CustomerScreenController.getInstance().removeFromRequest(item);
+                setVisible(false);
             }
         });
     }

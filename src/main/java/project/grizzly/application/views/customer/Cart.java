@@ -59,7 +59,7 @@ public class Cart extends JPanel {
         itemsLbl.setBackground(theme.getCurrentScheme().getAccent1());
         itemsLbl.setForeground(theme.getCurrentScheme().getPrimary());
         itemsLbl.setPreferredSize(new Dimension(0, 20));
-        itemsLbl.setFont(new Font("SansSerif", Font.PLAIN, 20));
+        itemsLbl.setFont(theme.getFontLoader().getH2().deriveFont(24f));
         itemsLbl.setBorder(BorderFactory.createEmptyBorder(4, 15, 4, 4));
     }
 

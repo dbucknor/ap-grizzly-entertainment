@@ -32,6 +32,7 @@ public class ServerDriver {
         cruds.put("INVOICE", new CRUDService<Invoice, Integer>(Invoice.class));
         cruds.put("INVOICEITEM", new CRUDService<InvoiceItem, Integer>(InvoiceItem.class));
         cruds.put("RENTALREQUEST", new CRUDService<RentalRequest, Integer>(RentalRequest.class));
+        cruds.put("TRANSACTION", new CRUDService<Transaction, Integer>(Transaction.class));
 
         cruds.put("CHAT", new CRUDService<Chat, String>(Chat.class));
         cruds.put("MESSAGE", new CRUDService<Message, String>(Message.class));

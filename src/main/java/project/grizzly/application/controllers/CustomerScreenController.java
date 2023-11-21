@@ -7,6 +7,8 @@ import project.grizzly.application.models.interfaces.FieldListeners;
 import project.grizzly.application.models.interfaces.IFormField;
 import project.grizzly.application.services.AuthChangedListener;
 import project.grizzly.application.services.AuthService;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -177,9 +179,9 @@ public class CustomerScreenController extends TableController<Equipment, String>
     public void sendRequest(RentalRequest rentalRequest) {
         executorService.submit(() -> {
             try {
-                client.sendAction("ADD RENTALREQUEST");
-                client.send(rentalRequest);
-                Object o = client.receiveResponse();
+                client.sendRequest(new Request("ADD", "RENTALREQUEST", rentalRequest));
+//                client.send(rentalRequest);
+                Object o = ((Response) client.receiveResponse()).getValue();
 
                 SwingUtilities.invokeLater(() -> {
                     if (o instanceof Boolean && (Boolean) o) {
@@ -189,6 +191,8 @@ public class CustomerScreenController extends TableController<Equipment, String>
                         JOptionPane.showMessageDialog(null, "Request Not sent!", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 });
+
+//                refreshData();
 
             } catch (InterruptedException e) {
                 logger.error(e.getMessage());

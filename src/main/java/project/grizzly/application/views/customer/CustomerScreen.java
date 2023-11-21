@@ -12,8 +12,6 @@ public class CustomerScreen extends Screen {
     private final ClassLoader loader;
     public static final String CUSTOMER_HOME = "Customer-Home";
     public static final String REQUEST_CART = "Request-Cart";
-    private final String RESULT_SCREEN = "Customer-Home";
-    private ProductScreen productScreen;
     private RequestCart requestCart;
     private CustomerScreenController controller;
     private static CustomerScreen instance;

@@ -1,18 +1,21 @@
 package project.grizzly.application.views.components;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import project.grizzly.application.controllers.TableController;
-import project.grizzly.application.models.Customer;
-import project.grizzly.application.models.InvoiceItem;
-import project.grizzly.application.models.RentalRequest;
+import project.grizzly.application.models.*;
 import project.grizzly.application.models.enums.ButtonSize;
+import project.grizzly.application.models.enums.UserType;
 import project.grizzly.application.models.interfaces.IView;
+import project.grizzly.application.services.AuthService;
 import project.grizzly.application.theme.ThemeManager;
 import project.grizzly.application.views.components.fields.Button;
 import project.grizzly.application.views.screens.MainWindow;
+import project.grizzly.server.Request;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
@@ -23,10 +26,10 @@ public class RequestDialog extends JDialog implements IView {
     private JLabel rentalId, customerId, status, itemCount, estPrice, totalPrice, rentalDate, invoiceId;
     private JScrollPane scrollPane;
     private RentalRequest request;
-    private TableController<RentalRequest, String> controller;
+    private TableController<RentalRequest, Integer> controller;
     private ThemeManager theme;
 
-    public RequestDialog(TableController<RentalRequest, String> controller) {
+    public RequestDialog(TableController<RentalRequest, Integer> controller) {
         super(MainWindow.getInstance().getFrame(), "Rental Request", true);
         this.controller = controller;
         this.request = controller.getEditingRecord();
@@ -73,7 +76,7 @@ public class RequestDialog extends JDialog implements IView {
         rentalDate.setFont(theme.getFontLoader().getH3());
 
         cancel = new Button("Cancel", ButtonSize.SMALL);
-        approve = new Button(isApproved ? "Reject" : "Approve", ButtonSize.SMALL);
+        approve = new Button("Approve", ButtonSize.SMALL);
         delete = new Button("Delete", ButtonSize.SMALL);
 
         itemsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -85,6 +88,13 @@ public class RequestDialog extends JDialog implements IView {
         }
 
         scrollPane = new JScrollPane(itemsPanel);
+
+        User user = AuthService.getInstance().getLoggedInUser();
+        if (user.getAccountType() == UserType.EMPLOYEE) {
+            approve.setText(isApproved ? "Reject" : "Approve");
+        } else {
+            approve.setText("Pay");
+        }
     }
 
     @Override
@@ -113,17 +123,21 @@ public class RequestDialog extends JDialog implements IView {
         approve.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                boolean isApproved = controller.getEditingRecord().isApproved();
-                approve.setText(isApproved ? "Reject" : "Approve");
-                controller.getEditingRecord().setApproved(!isApproved);
-                status.setText(!isApproved ? "Approval Status: Not Approved" : "Approval Status: Approved");
-                controller.updateRecord(controller.getEditingRecord());
+                User user = AuthService.getInstance().getLoggedInUser();
+                if (user == null) {
+                    return;
+                }
+                if (user.getAccountType() == UserType.EMPLOYEE) {
+                    handleApproval();
+                } else {
+                    handlePayment(user);
+                }
             }
         });
         delete.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.deleteRecords(Collections.singletonList(Integer.toString(controller.getEditingRecord().getRequestId())));
+                controller.deleteRecords(Collections.singletonList(controller.getEditingRecord().getRequestId()));
             }
         });
         cancel.addActionListener(new AbstractAction() {
@@ -132,6 +146,32 @@ public class RequestDialog extends JDialog implements IView {
                 dispose();
             }
         });
+    }
+
+    private void handlePayment(User user) {
+        Customer c = (Customer) user;
+        String value = JOptionPane.showInputDialog(null, "Please Enter Payment Amount", "Payment", JOptionPane.QUESTION_MESSAGE);
+
+        if (NumberUtils.isParsable(value)) {
+            try {
+                Transaction transaction = new Transaction(null, Double.parseDouble(value), controller.getEditingRecord(), controller.getEditingRecord().getInvoice().getTotalPrice() - Double.parseDouble(value), LocalDateTime.now());
+                transaction.setCustomerId(c.getCustomerId());
+                c.getTransactions().add(transaction);
+                controller.getClient().sendRequest(new Request("ADD", "TRANSACTION", transaction));
+            } catch (InterruptedException e) {
+                JOptionPane.showMessageDialog(null, "Error making payment", "Payment Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please enter only numbers for payment value", "Invalid Payment Value", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleApproval() {
+        boolean isApproved = controller.getEditingRecord().isApproved();
+        approve.setText(isApproved ? "Reject" : "Approve");
+        controller.getEditingRecord().setApproved(!isApproved);
+        status.setText(!isApproved ? "Approval Status: Not Approved" : "Approval Status: Approved");
+        controller.updateRecord(controller.getEditingRecord());
     }
 
     @Override

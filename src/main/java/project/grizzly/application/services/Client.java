@@ -2,6 +2,8 @@ package project.grizzly.application.services;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -16,16 +18,15 @@ public class Client {
     private static Client instance;
     private final Logger logger = LogManager.getLogger(Client.class);
     private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final BlockingQueue<Object> requestQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<Object> responseQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Response> responseQueue = new LinkedBlockingQueue<>();
 
     public Client() {
-//        executor.submit(() -> {
         createConnection();
         getStreams();
-        process();
-//        });
+        processRequests();
     }
+
 
     public static Client getInstance() {
         if (instance == null) {
@@ -75,47 +76,48 @@ public class Client {
         }
     }
 
-    public void sendAction(String request) throws InterruptedException {
+    public void sendRequest(Request request) throws InterruptedException {
 //        executor.submit(() -> {
         try {
             requestQueue.put(request);
-            logger.info("Sent Request: " + request);
+            logger.info("Added to queue Request: " + request);
         } catch (Exception e) {
-            throw e;
+            e.printStackTrace();
         }
 //        });
     }
 
-    public void send(Object obj) throws InterruptedException {
-//        executor.submit(() -> {
-        try {
-            requestQueue.put(obj);
-            logger.info("Sent object: " + obj);
-        } catch (InterruptedException e) {
-            throw e;
-        }
-        //        });
-    }
+//    public void send(Object obj) throws InterruptedException {
+////        executor.submit(() -> {
+//        try {
+//            requestQueue.put(obj);
+//            logger.info("Added to queue object: " + obj);
+//        } catch (InterruptedException e) {
+//            throw e;
+//        }
+//        //        });
+//    }
 
-    private void process() {
+    private void processRequests() {
         executor.submit(() -> {
             while (true) {
                 try {
-                    Object o = requestQueue.take();
-                    logger.info("Sent queue object: " + o);
+                    System.out.println("processss");
+                    Request o = requestQueue.take();
                     os.writeObject(o);
-                    processResponse();
+                    logger.info("Sent queue object: " + o);
+                    processResponse(o);
                 } catch (IOException | InterruptedException ex) {
                     logger.error(ex.getMessage());
+                    ex.printStackTrace();
                 }
             }
         });
     }
 
-    public void processResponse() {
+    public void processResponse(Request request) {
         try {
-            Object o = is != null ? is.readObject() : "NULL";
-            o = o == null ? "NULL" : o;
+            Response o = is != null ? (Response) is.readObject() : null;
             responseQueue.put(o);
         } catch (Exception ex) {
             logger.error(ex.getMessage());
@@ -123,23 +125,31 @@ public class Client {
     }
 
     public Object receiveResponse() {
-//        Future<Object> f = executor.submit((Callable<Object>) () -> {
+        Future<Object> f = executor.submit((Callable<Object>) () -> {
+            try {
+//            if(isResponseForRequest(request)){
+//
+//            }
+                Response o = responseQueue.take();
+                logger.info("Response  received: " + o);
+                return o;
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+                return null;
+            }
+
+        });
+
         try {
-            Object o = responseQueue.take();
-            logger.info("Response  received: " + o);
-            return o instanceof String && ((String) o).compareTo("NULL") == 0 ? null : o;
-        } catch (Exception ex) {
-            logger.error(ex.getMessage());
+            return f.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
             return null;
         }
-//        });
-//
-//        try {
-//            return f.get();
-//        } catch (InterruptedException | ExecutionException e) {
-//            e.printStackTrace();
-//            return null;
-//        }
+    }
+
+    private boolean isResponseForRequest(Request request) {
+        return responseQueue.peek().getRequest().equals(request);
     }
 
 }

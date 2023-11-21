@@ -15,9 +15,9 @@ public class RequestBox extends JPanel implements IView {
     private JLabel requestId, invoiceId, customerName, requestDate;
     private RentalRequest request;
     private ThemeManager theme;
-    private TableController<RentalRequest, String> controller;
+    private TableController<RentalRequest, Integer> controller;
 
-    public RequestBox(RentalRequest request, TableController<RentalRequest, String> controller) {
+    public RequestBox(RentalRequest request, TableController<RentalRequest, Integer> controller) {
         super(new GridLayout(2, 2));
         this.request = request;
         this.controller = controller;
