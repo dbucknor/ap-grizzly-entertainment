@@ -56,10 +56,8 @@ public class RequestCart extends Box implements IView {
         btnPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         btnPanel.add(clear);
 
-
         checkout = new Box(BoxLayout.Y_AXIS);
         infoPanel = new Box(BoxLayout.Y_AXIS);
-
 
         checkout.add(Box.createVerticalStrut(50));
         checkout.add(infoPanel);

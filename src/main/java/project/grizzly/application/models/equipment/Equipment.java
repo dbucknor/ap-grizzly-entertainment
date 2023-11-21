@@ -103,7 +103,7 @@ public class Equipment implements Serializable, ITableEntity {
     }
 
     /**
-     * COpy constructor
+     * Copy constructor
      *
      * @param other equipment to copy
      */
@@ -230,7 +230,7 @@ public class Equipment implements Serializable, ITableEntity {
             ClassLoader loader = this.getClass().getClassLoader();
             image = new ImageIcon(ImageIO.read(new File(Objects.requireNonNull(loader.getResource("media/images/equipment-placeholder.png")).toURI().getPath())));
         } catch (IOException | URISyntaxException e) {
-
+            
         }
     }
 
