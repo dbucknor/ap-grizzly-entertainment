@@ -12,9 +12,8 @@ import project.grizzly.application.models.enums.FormFieldType;
 import javax.imageio.ImageIO;
 import javax.persistence.*;
 import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,24 +34,34 @@ public class Equipment implements Serializable, ITableEntity {
     protected String name;
 
     @Transient
-    @Column(name = "image")
     protected ImageIcon image;
+
+    @Column(name = "image")
+    private byte[] imageData;
 
     @Column(name = "description")
     protected String description;
+
     @Enumerated(EnumType.STRING)
     protected RentalStatus rentalStatus;
+
     @Column(name = "category")
     protected String category;
+
     @Column(name = "price")
     protected Double price;
+
     @Column(name = "rentedPer")
     @Enumerated(EnumType.STRING)
     protected RentedPer rentedPer;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "health")
     protected Condition condition;
+
     @Column(name = "type")
     protected String type;
+
     @Column(name = "nextAvailableDate")
     protected LocalDateTime nextAvailableDate;
 
@@ -221,16 +230,60 @@ public class Equipment implements Serializable, ITableEntity {
 
     public void setImage(ImageIcon image) {
         this.image = image;
+        this.imageData = imageIconToByteArray(image);
     }
 
+    public byte[] getImageData() {
+        return imageData;
+    }
+
+    public void setImageData(byte[] imageData) {
+        this.imageData = imageData;
+        image = byteArrayToImageIcon(imageData);
+
+    }
 
     private void setDefaultImage() {
         if (image != null) return;
         try {
             ClassLoader loader = this.getClass().getClassLoader();
-            image = new ImageIcon(ImageIO.read(new File(Objects.requireNonNull(loader.getResource("media/images/equipment-placeholder.png")).toURI().getPath())));
+            ImageIcon img = new ImageIcon(ImageIO.read(new File(Objects.requireNonNull(loader.getResource("media/images/equipment-placeholder.png")).toURI().getPath())));
+            setImage(img);
         } catch (IOException | URISyntaxException e) {
 
+        }
+    }
+
+    // Convert ImageIcon to byte array using serialization
+    private byte[] imageIconToByteArray(ImageIcon imageIcon) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(imageIcon);
+            oos.close();
+            return baos.toByteArray();
+        } catch (IOException e) {
+//            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Convert byte array back to ImageIcon using deserialization
+    private ImageIcon byteArrayToImageIcon(byte[] bytes) {
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            Object obj = ois.readObject();
+            ois.close();
+
+            if (obj instanceof ImageIcon) {
+                return (ImageIcon) obj;
+            } else {
+                throw new IllegalArgumentException("The byte array does not represent an ImageIcon");
+            }
+        } catch (IOException | ClassNotFoundException e) {
+//            e.printStackTrace();
+            return null;
         }
     }
 

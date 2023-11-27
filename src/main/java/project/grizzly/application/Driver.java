@@ -3,6 +3,11 @@ package project.grizzly.application;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import project.grizzly.application.controllers.TableController;
+import project.grizzly.application.models.RentalRequest;
+import project.grizzly.application.services.AuthService;
+import project.grizzly.application.services.CombinedQuery;
+import project.grizzly.server.Request;
 
 import java.util.concurrent.*;
 
@@ -39,15 +44,12 @@ public class Driver {
         });
 
 //        Future<Object> future = executor.submit((Callable<Object>) () -> {
-//            Client c = Client.getInstance();
-//            try {
-//                System.out.println("Client 1");
-//                c.sendAction("READ-ALL LIGHT");
-//                return c.receiveResponse();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                return null;
-//            }
+//            TableController<RentalRequest, Integer> controller = new TableController<>(RentalRequest.class, new Request("READ-WHERE", "RENTALREQUEST",
+//                    new CombinedQuery<RentalRequest>("FROM RentalRequest req").where("req.requestFrom.userId",
+//                            "=:customerId", "user1")));
+//            controller.refreshData();
+//            System.out.println(controller.getRecords());
+//            return null;
 //        });
 //
 //        Future<Object> f2 = executor.submit((Callable<Object>) () -> {

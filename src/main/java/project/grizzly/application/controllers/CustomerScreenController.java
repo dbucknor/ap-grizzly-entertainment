@@ -33,18 +33,6 @@ public class CustomerScreenController extends TableController<Equipment, String>
         getUser();
     }
 
-    private void getUser() {
-        AuthService.getInstance().addAuthChangedListener(new AuthChangedListener<User>() {
-            @Override
-            public void onAuthChanged(User user) {
-                if (user != null) {
-                    Customer c = (Customer) user;
-                    invoice.setCustomer(c);
-                }
-            }
-        });
-    }
-
     public static CustomerScreenController getInstance() {
         if (instance == null) {
             instance = new CustomerScreenController();
@@ -52,11 +40,25 @@ public class CustomerScreenController extends TableController<Equipment, String>
         return instance;
     }
 
+    private void getUser() {
+        AuthService.getInstance().addAuthChangedListener(new AuthChangedListener<User>() {
+            @Override
+            public void onAuthChanged(User user) {
+                if (user instanceof Customer c) {
+                    invoice.setCustomer(c);
+                }
+            }
+        });
+    }
+
     public void sort() {
-        for (Equipment e : allRecords
+        sound = new ArrayList<>();
+        power = new ArrayList<>();
+        light = new ArrayList<>();
+        stage = new ArrayList<>();
+
+        for (Equipment e : records
         ) {
-            System.out.println(e.getClass());
-            System.out.println(e instanceof Light);
             if (e instanceof Sound) {
                 sound.add(e);
             }
@@ -74,55 +76,96 @@ public class CustomerScreenController extends TableController<Equipment, String>
 
     public void addToRequest(InvoiceItem item) {
         item.setInvoice(invoice);
+        item.calculatePrice();
         invoice.getItems().add(item);
+        invoice.setTotalPrice(invoice.getTotalPrice() + item.getTotalPrice());
         logger.info("Item added: " + item);
-        refreshInvoice();
+        logger.info("Item added: " + invoice);
         updateCartListeners();
-    }
-
-    public Invoice getInvoice() {
-        return invoice;
-    }
-
-    public void setInvoice(Invoice invoice) {
-        this.invoice = invoice;
-    }
-
-    public void refreshInvoice() {
-        Double total = 0.0;
-
-        for (InvoiceItem it : invoice.getItems()
-        ) {
-            it.calculatePrice();
-            total += it.getTotalPrice();
-        }
-        invoice.setTotalPrice(total);
-        logger.info("Items refreshed");
     }
 
     public void removeFromRequest(InvoiceItem item) {
+        item.calculatePrice();
         invoice.getItems().remove(item);
+        invoice.setTotalPrice(invoice.getTotalPrice() - item.getTotalPrice());
         logger.info("Item removed: " + item);
-        refreshInvoice();
         updateCartListeners();
     }
 
-    public List<InvoiceItem> getRequestList() {
-        return invoice.getItems();
-    }
-
-    public void setRequestList(List<InvoiceItem> requestList) {
-        invoice.setItems(new ArrayList<>(requestList));
-    }
 
     public void handleSearch(String value) {
         filteredRecords = new ArrayList<>();
-        for (Equipment e : allRecords
+        for (Equipment e : records
         ) {
             if (e.toString().toLowerCase().contains(value.toLowerCase())) {
                 filteredRecords.add(e);
             }
         }
+    }
+
+    public void sendRequest(RentalRequest rentalRequest) {
+        executorService.submit(() -> {
+            try {
+                Request r = new Request("ADD", "RENTALREQUEST", rentalRequest);
+                client.sendRequest(r);
+                Object o = ((Response) client.receiveResponse(r)).getValue();
+
+                SwingUtilities.invokeLater(() -> {
+                    if (o instanceof Boolean && (Boolean) o) {
+                        JOptionPane.showMessageDialog(null, "Request Sent!");
+                        emptyCart();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Request Not sent!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(null, "Request Not sent!", "Error", JOptionPane.ERROR_MESSAGE);
+
+                });
+            }
+
+        });
+    }
+
+    public void sendInvoice(Invoice invoice) {
+        executorService.submit(() -> {
+            try {
+                Request r = new Request("ADD", "INVOICE", invoice);
+                client.sendRequest(r);
+                Object o = ((Response) client.receiveResponse(r)).getValue();
+
+                SwingUtilities.invokeLater(() -> {
+                    if (o instanceof Boolean && (Boolean) o) {
+                        JOptionPane.showMessageDialog(null, "Invoice Sent!");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Invoice Not sent!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(null, "Invoice sent!", "Error", JOptionPane.ERROR_MESSAGE);
+
+                });
+            }
+
+        });
+    }
+
+    public void updateCartListeners() {
+        for (FieldListeners<List<InvoiceItem>> fl : cartListeners) {
+            if (fl != null) {
+                fl.onChange(invoice.getItems());
+                fl.onBlur(invoice.getItems());
+            }
+        }
+    }
+
+    public void emptyCart() {
+        invoice = new Invoice();
+        updateCartListeners();
     }
 
     public List<Equipment> getSound() {
@@ -157,13 +200,20 @@ public class CustomerScreenController extends TableController<Equipment, String>
         this.stage = stage;
     }
 
-    public void updateCartListeners() {
-        for (FieldListeners<List<InvoiceItem>> fl : cartListeners) {
-            if (fl != null) {
-                fl.onChange(invoice.getItems());
-                fl.onBlur(invoice.getItems());
-            }
-        }
+    public List<InvoiceItem> getRequestList() {
+        return invoice.getItems();
+    }
+
+    public void setRequestList(List<InvoiceItem> requestList) {
+        invoice.setItems(new ArrayList<>(requestList));
+    }
+
+    public Invoice getInvoice() {
+        return invoice;
+    }
+
+    public void setInvoice(Invoice invoice) {
+        this.invoice = invoice;
     }
 
     @Override
@@ -176,38 +226,5 @@ public class CustomerScreenController extends TableController<Equipment, String>
         cartListeners.remove(fl);
     }
 
-    public void sendRequest(RentalRequest rentalRequest) {
-        executorService.submit(() -> {
-            try {
-                client.sendRequest(new Request("ADD", "RENTALREQUEST", rentalRequest));
-//                client.send(rentalRequest);
-                Object o = ((Response) client.receiveResponse()).getValue();
 
-                SwingUtilities.invokeLater(() -> {
-                    if (o instanceof Boolean && (Boolean) o) {
-                        JOptionPane.showMessageDialog(null, "Request Sent!");
-                        invoice = new Invoice();
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Request Not sent!", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                });
-
-//                refreshData();
-
-            } catch (InterruptedException e) {
-                logger.error(e.getMessage());
-                SwingUtilities.invokeLater(() -> {
-                    JOptionPane.showMessageDialog(null, "Request Not sent!", "Error", JOptionPane.ERROR_MESSAGE);
-
-                });
-            }
-
-        });
-    }
-
-    public void emptyCart() {
-        invoice.setItems(new ArrayList<>());
-        refreshInvoice();
-        updateCartListeners();
-    }
 }

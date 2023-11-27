@@ -1,12 +1,15 @@
 package project.grizzly.application.views.customer;
 
 import project.grizzly.application.controllers.CustomerScreenController;
+import project.grizzly.application.models.Customer;
+import project.grizzly.application.models.Invoice;
 import project.grizzly.application.models.InvoiceItem;
 import project.grizzly.application.models.RentalRequest;
 import project.grizzly.application.models.enums.ButtonSize;
 
 import project.grizzly.application.models.interfaces.FieldListeners;
 import project.grizzly.application.models.interfaces.IView;
+import project.grizzly.application.services.AuthService;
 import project.grizzly.application.theme.ThemeManager;
 import project.grizzly.application.views.components.CartItem;
 import project.grizzly.application.views.components.ListItem;
@@ -23,6 +26,7 @@ public class RequestCart extends Box implements IView {
     private JLabel itemsLbl;
     private JScrollPane scrollPane;
     private Box itemsPanel, checkout, itemsList, infoPanel, btnPanel;
+    private Box totalPrice, subTotal, itemCount, discount;
     private Button request, clear;
     private ThemeManager theme;
     private CustomerScreenController controller;
@@ -76,13 +80,7 @@ public class RequestCart extends Box implements IView {
     }
 
     public void addComponents() {
-        infoPanel.add(pricePanel("# of Items: ", Integer.toString(controller.getInvoice().getItems().size())));
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        infoPanel.add(pricePanel("Sub-Total:", "$ " + (controller.getInvoice().getTotalPrice() - controller.getInvoice().getDiscount())));
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        infoPanel.add(pricePanel("Discount:", "$ " + controller.getInvoice().getDiscount()));
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        infoPanel.add(pricePanel("Total:", "$ " + controller.getInvoice().getTotalPrice()));
+        addInfoPanels();
 
         addItems();
 
@@ -91,6 +89,17 @@ public class RequestCart extends Box implements IView {
         this.add(Box.createHorizontalGlue());
         this.add(checkout);
         this.add(Box.createRigidArea(new Dimension(50, 0)));
+    }
+
+    private void addInfoPanels() {
+        infoPanel.removeAll();
+        infoPanel.add(pricePanel("# of Items: ", Integer.toString(controller.getInvoice().getItems().size())));
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(pricePanel("Sub-Total:", "$ " + (controller.getInvoice().getTotalPrice() - controller.getInvoice().getDiscount())));
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(pricePanel("Discount:", "$ " + controller.getInvoice().getDiscount()));
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(pricePanel("Total:", "$ " + controller.getInvoice().getTotalPrice()));
     }
 
     private void addItems() {
@@ -107,6 +116,7 @@ public class RequestCart extends Box implements IView {
             @Override
             public void onChange(List<InvoiceItem> fieldValue) {
                 addItems();
+                addInfoPanels();
             }
 
             @Override
@@ -122,13 +132,21 @@ public class RequestCart extends Box implements IView {
                 }
 
                 RentalRequest rentalReq = new RentalRequest(1, LocalDateTime.now(), false, controller.getInvoice(), null);
-                controller.getInvoice().setRentalRequest(rentalReq);
-                controller.getInvoice().setInvoiceDate(LocalDateTime.now());
-                controller.getInvoice().setDiscount(0);
+                rentalReq.setRequestFrom((Customer) AuthService.getInstance().getLoggedInUser());
 
-                rentalReq.setInvoice(controller.getInvoice());
-                System.out.println(rentalReq);
+                Invoice invoice = controller.getInvoice();
+                invoice.setRentalRequest(rentalReq);
+                invoice.setInvoiceDate(LocalDateTime.now());
+                invoice.setDiscount(0);
+                invoice.setCustomer((Customer) AuthService.getInstance().getLoggedInUser());
+
+                rentalReq.setInvoice(invoice);
+                controller.sendInvoice(invoice);
                 controller.sendRequest(rentalReq);
+
+                controller.emptyCart();
+                addInfoPanels();
+                revalidate();
             }
         });
 
@@ -136,6 +154,8 @@ public class RequestCart extends Box implements IView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 controller.emptyCart();
+                addInfoPanels();
+                revalidate();
             }
         });
     }

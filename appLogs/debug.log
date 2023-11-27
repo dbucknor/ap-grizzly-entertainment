@@ -1,15 +1,48 @@
-2023-11-21 12:35:32 INFO  ICRUD:101 - Server Read records: [User{userId='123qwe', email='customer@mail.com', password='customer123', firstName='New', lastName='Customer', loggedIn=false, type=CUSTOMER}]
-2023-11-21 12:35:33 INFO  Client:108 - Sent queue object: Request{action='READ-ALL', entity='LIGHT', inputObject=null}
-2023-11-21 12:35:33 INFO  Client:134 - Response  received: Response{request=Request{action='READ-ALL', entity='CUSTOMER', inputObject=null}, response=[User{userId='123qwe', email='customer@mail.com', password='customer123', firstName='New', lastName='Customer', loggedIn=false, type=CUSTOMER}]}
-2023-11-21 12:35:33 INFO  ClientHandler:150 - Request{action='READ-ALL', entity='LIGHT', inputObject=null}
-2023-11-21 12:35:33 INFO  ClientHandler:176 - Processing: Request{action='READ-ALL', entity='LIGHT', inputObject=null}
-2023-11-21 12:35:33 INFO  ClientHandler:200 - READING All
-2023-11-21 12:35:33 INFO  ICRUD:101 - Server Read records: [Light [lumens=5200, wattage=200.0, voltage=220, toString()=Equipment{equipmentId='LT-S-7357', name='A Light', image=javax.swing.ImageIcon@7c538099, description='Very bright light used for spacial lighting.', rentalStatus=AVAILABLE, category='Light', price=12000.0, rentedPer=DAY, condition=EXCELLENT, type='null', nextAvailableDate=2023-11-20T18:55:30}]]
-2023-11-21 12:35:34 INFO  Client:134 - Response  received: Response{request=Request{action='READ-ALL', entity='LIGHT', inputObject=null}, response=[Light [lumens=5200, wattage=200.0, voltage=220, toString()=Equipment{equipmentId='LT-S-7357', name='A Light', image=javax.swing.ImageIcon@1a40ed96, description='Very bright light used for spacial lighting.', rentalStatus=AVAILABLE, category='Light', price=12000.0, rentedPer=DAY, condition=EXCELLENT, type='null', nextAvailableDate=2023-11-20T18:55:30}]]}
-2023-11-21 12:35:37 INFO  ITableController:78 - Item added: InvoiceItem{invoiceItemId=0, equipment=Light [lumens=5200, wattage=200.0, voltage=220, toString()=Equipment{equipmentId='LT-S-7357', name='A Light', image=javax.swing.ImageIcon@27205394, description='Very bright light used for spacial lighting.', rentalStatus=AVAILABLE, category='Light', price=12000.0, rentedPer=DAY, condition=EXCELLENT, type='null', nextAvailableDate=2023-11-20T18:55:30}], quantity=1, approved=false, totalPrice=null, invoice=project.grizzly.application.models.Invoice@1a0f285b}
-2023-11-21 12:35:37 INFO  ITableController:100 - Items refreshed
-2023-11-21 12:35:40 INFO  Client:83 - Added to queue Request: Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@41117f62}
-2023-11-21 12:35:41 INFO  Client:108 - Sent queue object: Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@41117f62}
-2023-11-21 12:35:41 INFO  ClientHandler:150 - Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@50d9414e}
-2023-11-21 12:35:41 INFO  ClientHandler:176 - Processing: Request{action='ADD', entity='RENTALREQUEST', inputObject=project.grizzly.application.models.RentalRequest@50d9414e}
-2023-11-21 12:35:41 ERROR ICRUD:40 - could not execute statement
+2023-11-27 08:27:19 INFO  Client:89 - Added to queue Request: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:27:19 INFO  Client:113 - Sent queue object: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:27:41 INFO  ICRUD:101 - Server Read records: [project.grizzly.application.models.RentalRequest@789c1a54, project.grizzly.application.models.RentalRequest@78bd54c4, project.grizzly.application.models.RentalRequest@492e01d4, project.grizzly.application.models.RentalRequest@e511e9]
+2023-11-27 08:27:42 INFO  Client:46 - Connected to Server
+2023-11-27 08:27:43 INFO  Server:64 - Clients connected: 3
+2023-11-27 08:27:45 INFO  Client:140 - Response  received: Response{request=Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}, response=[project.grizzly.application.models.RentalRequest@68660ec, project.grizzly.application.models.RentalRequest@578314d, project.grizzly.application.models.RentalRequest@17eeb077, project.grizzly.application.models.RentalRequest@14f08ba7]}
+
+2023-11-27 08:28:57 INFO  Client:89 - Added to queue Request: Request{action='READ-WHERE', entity='USER', inputObject=CombinedQuery{query=null, queryString='SELECT u FROM User u WHERE u.userId =:userId', values={userId=user9}}}
+
+2023-11-27 08:28:57 INFO  Client:113 - Sent queue object: Request{action='READ-WHERE', entity='USER', inputObject=CombinedQuery{query=null, queryString='SELECT u FROM User u WHERE u.userId =:userId', values={userId=user9}}}
+
+2023-11-27 08:28:57 INFO  ClientHandler:148 - Request{action='READ-WHERE', entity='USER', inputObject=CombinedQuery{query=null, queryString='SELECT u FROM User u WHERE u.userId =:userId', values={userId=user9}}}
+2023-11-27 08:28:57 INFO  ClientHandler:176 - Processing: Request{action='READ-WHERE', entity='USER', inputObject=CombinedQuery{query=null, queryString='SELECT u FROM User u WHERE u.userId =:userId', values={userId=user9}}}
+2023-11-27 08:29:04 INFO  ICRUD:82 - Server Read records: [Employee{staffID='user9', email='emily.clark@example.com', password='password9', firstName='Emily', lastName='Clark', loggedIn=false, type=EMPLOYEE}]
+2023-11-27 08:29:06 INFO  Client:140 - Response  received: Response{request=Request{action='READ-WHERE', entity='USER', inputObject=CombinedQuery{query=null, queryString='SELECT u FROM User u WHERE u.userId =:userId', values={userId=user9}}}, response=[Employee{staffID='user9', email='emily.clark@example.com', password='password9', firstName='Emily', lastName='Clark', loggedIn=false, type=EMPLOYEE}]}
+
+2023-11-27 08:29:14 INFO  Client:113 - Sent queue object: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:29:14 INFO  Client:89 - Added to queue Request: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:29:14 INFO  ClientHandler:148 - Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+2023-11-27 08:29:14 INFO  ClientHandler:176 - Processing: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+2023-11-27 08:29:14 INFO  ClientHandler:200 - READING All
+2023-11-27 08:29:24 INFO  ICRUD:101 - Server Read records: [project.grizzly.application.models.RentalRequest@4b15cef, project.grizzly.application.models.RentalRequest@2a269574, project.grizzly.application.models.RentalRequest@7d20c040, project.grizzly.application.models.RentalRequest@70822a0]
+2023-11-27 08:29:31 INFO  Client:140 - Response  received: Response{request=Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}, response=[project.grizzly.application.models.RentalRequest@5f89f6b0, project.grizzly.application.models.RentalRequest@29d1d4b1, project.grizzly.application.models.RentalRequest@65e92f1b, project.grizzly.application.models.RentalRequest@5b2ce4b3]}
+
+2023-11-27 08:30:06 INFO  Client:89 - Added to queue Request: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:30:06 INFO  Client:113 - Sent queue object: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:30:06 INFO  ClientHandler:148 - Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+2023-11-27 08:30:06 INFO  ClientHandler:176 - Processing: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+2023-11-27 08:30:06 INFO  ClientHandler:200 - READING All
+2023-11-27 08:30:17 INFO  ICRUD:101 - Server Read records: [project.grizzly.application.models.RentalRequest@1b644d3, project.grizzly.application.models.RentalRequest@2c13fb53, project.grizzly.application.models.RentalRequest@7832da11, project.grizzly.application.models.RentalRequest@556918b8]
+2023-11-27 08:30:21 INFO  Client:140 - Response  received: Response{request=Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}, response=[project.grizzly.application.models.RentalRequest@3614f14e, project.grizzly.application.models.RentalRequest@4e49094f, project.grizzly.application.models.RentalRequest@25ee65a0, project.grizzly.application.models.RentalRequest@27e5caea]}
+
+2023-11-27 08:30:33 INFO  Client:89 - Added to queue Request: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:30:33 INFO  Client:113 - Sent queue object: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+
+2023-11-27 08:30:33 INFO  ClientHandler:148 - Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+2023-11-27 08:30:33 INFO  ClientHandler:176 - Processing: Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}
+2023-11-27 08:30:33 INFO  ClientHandler:200 - READING All
+2023-11-27 08:30:37 INFO  ICRUD:101 - Server Read records: [project.grizzly.application.models.RentalRequest@190725c, project.grizzly.application.models.RentalRequest@58de295b, project.grizzly.application.models.RentalRequest@3603ba5e, project.grizzly.application.models.RentalRequest@9107c65]
+2023-11-27 08:30:41 INFO  Client:140 - Response  received: Response{request=Request{action='READ-ALL', entity='RENTALREQUEST', inputObject=null}, response=[project.grizzly.application.models.RentalRequest@5a052baa, project.grizzly.application.models.RentalRequest@367912d2, project.grizzly.application.models.RentalRequest@27a97e1d, project.grizzly.application.models.RentalRequest@1c418a77]}
+

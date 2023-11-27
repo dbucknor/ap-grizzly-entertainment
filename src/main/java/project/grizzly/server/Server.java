@@ -92,7 +92,7 @@ class ClientHandler {
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private final BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<Response> responseQueue = new LinkedBlockingQueue<>(1);
+    private final BlockingQueue<Response> responseQueue = new LinkedBlockingQueue<>();
 
     /**
      * Constructor
@@ -116,14 +116,12 @@ class ClientHandler {
             System.out.println("Strems connected");
             while (true) {
                 Request request = (Request) inputStream.readObject();
-//                System.out.println(request);
 
                 if (request.getAction().compareTo("EXIT") == 0) {
                     closeStreams();
                     closeClientConnection();
                     break;
                 }
-//                System.out.println("hererr");
 
                 try {
                     processRequest(request);
@@ -153,8 +151,9 @@ class ClientHandler {
             if (request.getAction().trim().isEmpty() || request.getEntity().trim().isEmpty()) {
                 throw new IOException("Invalid Request!");
             }
-            System.out.println("Servre processing");
+
             requestQueue.put(request);
+            System.out.println("\n\n Added Request: " + request + "\n\n");
 
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
@@ -171,6 +170,7 @@ class ClientHandler {
     private void handleRequest() throws IOException, ClassNotFoundException {
 
         try {
+            System.out.println("\n\n Request Queue: " + responseQueue + "\n\n");
             Request req = requestQueue.take();
 
             logger.info("Processing: " + req);
@@ -240,6 +240,7 @@ class ClientHandler {
     private void processResponse() {
         try {
             Response o = responseQueue.take();
+            System.out.println("\nServer Response Queue: " + responseQueue + "\n\n");
             writeToStream(o);
         } catch (InterruptedException e) {
             e.printStackTrace();//todo

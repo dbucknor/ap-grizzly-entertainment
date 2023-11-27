@@ -86,7 +86,6 @@ public class Transaction implements Serializable, ITableEntity {
 
     public void setPaid(Double paid) {
         this.paid = paid;
-        setBalance(getTotalPrice() - paid);
     }
 
     public Double getBalance() {
@@ -95,7 +94,6 @@ public class Transaction implements Serializable, ITableEntity {
 
     public void setBalance(Double balance) {
         this.balance = balance;
-        setPaid(getTotalPrice() - balance);
     }
 
     public void calculateBalance() {

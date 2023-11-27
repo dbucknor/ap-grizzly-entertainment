@@ -56,7 +56,7 @@ public class RentPeriod implements Serializable {
     }
 
     public int asDays() {
-        return asHours() / 24;
+        return (int) difference().toDays();
     }
 
     public int asWeeks() {
@@ -64,7 +64,7 @@ public class RentPeriod implements Serializable {
     }
 
     public int asMonths() {
-        return Period.ofDays(asDays()).getMonths();
+        return asWeeks() / 4;
     }
 
     public String startFormatted() {
@@ -82,16 +82,16 @@ public class RentPeriod implements Serializable {
     public int periodAs(RentedPer rentedPer) {
         switch (rentedPer) {
             case HOUR -> {
-                return asHours();
+                return Math.max(asHours(), 1);
             }
             case WEEK -> {
-                return asWeeks();
+                return Math.max(asWeeks(), 1);
             }
             case MONTH -> {
-                return asMonths();
+                return Math.max(asMonths(), 1);
             }
             default -> {
-                return asDays();
+                return Math.max(asDays(), 1);
             }
         }
     }

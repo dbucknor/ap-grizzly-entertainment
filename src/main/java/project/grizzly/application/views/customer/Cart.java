@@ -4,6 +4,7 @@ import project.grizzly.application.models.Invoice;
 import project.grizzly.application.models.InvoiceItem;
 import project.grizzly.application.models.enums.ButtonSize;
 
+import project.grizzly.application.models.interfaces.IView;
 import project.grizzly.application.theme.ThemeManager;
 import project.grizzly.application.views.components.CartItem;
 import project.grizzly.application.views.components.fields.Button;
@@ -11,7 +12,7 @@ import project.grizzly.application.views.components.fields.Button;
 import javax.swing.*;
 import java.awt.*;
 
-public class Cart extends JPanel {
+public class Cart extends JPanel implements IView {
     private JPanel itemsToRentPanel;
     private JLabel itemsLbl;
     private Box checkout, itemsList;

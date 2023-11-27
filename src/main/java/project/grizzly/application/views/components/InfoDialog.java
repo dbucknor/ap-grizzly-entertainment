@@ -66,7 +66,7 @@ public class InfoDialog extends JDialog implements IView {
         cancel = new Button("Close", ButtonSize.SMALL);
 
         start = new DateTimePicker("Rent Start Date:", false, false, LocalDateTime.now(), LocalDateTime.now().plusYears(20));
-        end = new DateTimePicker("Rent End Date:", false, false, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusYears(20));
+        end = new DateTimePicker("Rent End Date:", false, false, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusYears(20));
     }
 
     @Override
@@ -87,7 +87,7 @@ public class InfoDialog extends JDialog implements IView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    controller.addToRequest(new InvoiceItem(0, false, equipment, 1, null, new RentPeriod(start.getValue(), end.getValue())));
+                    controller.addToRequest(new InvoiceItem(0, false, equipment, 1, new RentPeriod(start.getValue(), end.getValue())));
                     JOptionPane.showMessageDialog(null, "Added to Request!");
                     dispose();
                 } catch (Exception iss) {

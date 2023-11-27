@@ -59,8 +59,7 @@ public class RequestDialog extends JDialog implements IView {
         customerId = new JLabel("Customer Id: " + ((Customer) request.getInvoice().getCustomer()).getCustomerId());
         customerId.setFont(theme.getFontLoader().getH3());
 
-        status = new JLabel("Approval Status: " + (isApproved ? "Approved" : "Not Approved")
-                + " " + request.getInvoice().getCustomer().getLastName());
+        status = new JLabel("Approval Status: " + (isApproved ? "Approved" : "Not Approved"));
         status.setFont(theme.getFontLoader().getH3());
 
         itemCount = new JLabel("Total Items: " + request.getInvoice().getItems().size());
@@ -93,7 +92,12 @@ public class RequestDialog extends JDialog implements IView {
         if (user.getAccountType() == UserType.EMPLOYEE) {
             approve.setText(isApproved ? "Reject" : "Approve");
         } else {
-            approve.setText("Pay");
+            Transaction trn = request.getTransaction();
+            if (request.isApproved() && trn != null && trn.getTotalPrice() < trn.getPaid()) {
+                approve.setText("Pay");
+            } else {
+                approve.setEnabled(false);
+            }
         }
     }
 
@@ -154,10 +158,30 @@ public class RequestDialog extends JDialog implements IView {
 
         if (NumberUtils.isParsable(value)) {
             try {
-                Transaction transaction = new Transaction(null, Double.parseDouble(value), controller.getEditingRecord(), controller.getEditingRecord().getInvoice().getTotalPrice() - Double.parseDouble(value), LocalDateTime.now());
-                transaction.setCustomerId(c.getCustomerId());
-                c.getTransactions().add(transaction);
-                controller.getClient().sendRequest(new Request("ADD", "TRANSACTION", transaction));
+                Transaction transaction = request.getTransaction();
+
+                if (transaction == null) {
+                    transaction = new Transaction(1, Double.parseDouble(value), controller.getEditingRecord(), controller.getEditingRecord().getInvoice().getTotalPrice() - Double.parseDouble(value), LocalDateTime.now());
+                    transaction.setRequest(request);
+                    transaction.setOwner(c);
+                    transaction.setCustomerId(c.getCustomerId());
+                    c.getTransactions().add(transaction);
+
+                    controller.getClient().sendRequest(new Request("ADD", "TRANSACTION", transaction));
+
+                } else {
+                    transaction.setPaid(Double.parseDouble(value));
+                    transaction.setBalance(controller.getEditingRecord().getInvoice().getTotalPrice() - Double.parseDouble(value));
+                    transaction.setTransactionDate(LocalDateTime.now());
+
+                    transaction.setOwner(c);
+                    transaction.setCustomerId(c.getCustomerId());
+                    c.getTransactions().add(transaction);
+
+                    controller.getClient().sendRequest(new Request("UPDATE", "TRANSACTION", transaction));
+                }
+
+                dispose();
             } catch (InterruptedException e) {
                 JOptionPane.showMessageDialog(null, "Error making payment", "Payment Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -168,10 +192,38 @@ public class RequestDialog extends JDialog implements IView {
 
     private void handleApproval() {
         boolean isApproved = controller.getEditingRecord().isApproved();
-        approve.setText(isApproved ? "Reject" : "Approve");
         controller.getEditingRecord().setApproved(!isApproved);
-        status.setText(!isApproved ? "Approval Status: Not Approved" : "Approval Status: Approved");
-        controller.updateRecord(controller.getEditingRecord());
+        controller.getEditingRecord().setApprovedBy((Employee) AuthService.getInstance().getLoggedInUser());
+
+        controller.getExecutorService().submit(() -> {
+            try {
+                createTransaction();
+                controller.updateRecord(controller.getEditingRecord());
+
+                SwingUtilities.invokeLater(() -> {
+                    approve.setText(isApproved ? "Reject" : "Approve");
+                    status.setText(!isApproved ? "Approval Status: Not Approved" : "Approval Status: Approved");
+                });
+
+            } catch (InterruptedException e) {
+                controller.getEditingRecord().setApproved(false);
+                controller.getEditingRecord().setApprovedBy(null);
+                controller.getEditingRecord().setTransaction(null);
+            }
+        });
+    }
+
+    private void createTransaction() throws InterruptedException {
+        Transaction transaction = controller.getEditingRecord().getTransaction();
+        if (transaction != null) {
+            transaction.setOwner(controller.getEditingRecord().getRequestFrom());
+            controller.getClient().sendRequest(new Request("UPDATE", "TRANSACTION", transaction));
+        } else {
+            transaction = new Transaction(0, 0.0, controller.getEditingRecord(), controller.getEditingRecord().getInvoice().getTotalPrice(), LocalDateTime.now());
+            transaction.setOwner(controller.getEditingRecord().getRequestFrom());
+            controller.getClient().sendRequest(new Request("ADD", "TRANSACTION", transaction));
+        }
+        controller.getEditingRecord().setTransaction(transaction);
     }
 
     @Override

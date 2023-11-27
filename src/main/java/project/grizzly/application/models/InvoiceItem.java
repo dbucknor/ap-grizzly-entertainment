@@ -41,13 +41,13 @@ public class InvoiceItem implements ITableEntity {
     }
 
 
-    public InvoiceItem(int invoiceItemId, Boolean approved, Equipment equipment, int quantity, Double totalPrice, RentPeriod rentPeriod) {
+    public InvoiceItem(int invoiceItemId, Boolean approved, Equipment equipment, int quantity, RentPeriod rentPeriod) {
         this.invoiceItemId = invoiceItemId;
         this.equipment = equipment;
         this.quantity = quantity;
-        this.totalPrice = totalPrice;
         this.approved = approved;
         this.rentPeriod = rentPeriod;
+        calculatePrice();
     }
 
     public InvoiceItem(InvoiceItem invoiceItem) {
@@ -61,7 +61,9 @@ public class InvoiceItem implements ITableEntity {
     }
 
     public void calculatePrice() {
-        totalPrice = (rentPeriod.periodAs(equipment.getRentedPer()) * equipment.getPrice()) * quantity;
+        this.totalPrice = (rentPeriod.periodAs(equipment.getRentedPer()) * equipment.getPrice()) * quantity;
+        System.out.println(this.totalPrice);
+        System.out.println("rp: " + rentPeriod.periodAs(equipment.getRentedPer()) + "ep: " + equipment.getPrice() + "q: " + quantity);
     }
 
     public Boolean getApproved() {
@@ -161,7 +163,7 @@ public class InvoiceItem implements ITableEntity {
 
     @Override
     public Object[] getValues() {
-        return new Object[]{invoice.getInvoiceId(), invoiceItemId, equipment.getEquipmentId(), quantity, totalPrice, rentPeriod.getRentalStartDate(), rentPeriod.getRentalEndDate(), approved};
+        return new Object[]{invoiceItemId, invoice.getInvoiceId(), equipment.getEquipmentId(), quantity, totalPrice, rentPeriod.getRentalStartDate(), rentPeriod.getRentalEndDate(), approved};
     }
 
     @Override

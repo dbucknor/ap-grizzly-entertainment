@@ -70,9 +70,9 @@ public class CRUDService<T extends Serializable, K extends Serializable> impleme
             Transaction transaction = null;
 
             if (callback == null) throw new HibernateException("Query callback is null!");
-            Query<T> q = callback.apply(session);
 
             assert session != null;
+            Query<T> q = callback.apply(session);
             transaction = session.beginTransaction();
 
             assert q != null;
@@ -102,6 +102,7 @@ public class CRUDService<T extends Serializable, K extends Serializable> impleme
             return results;
         } catch (Exception he) {
             logger.error(he.getMessage());
+            he.printStackTrace();
             throw he;
         }
     }

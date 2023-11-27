@@ -55,10 +55,13 @@ public class MainWindow implements IView {
         loader = MainWindow.class.getClassLoader();
         logger = LogManager.getLogger(MainWindow.class);
 
+
         initializeComponents();
         addComponents();
         addListeners();
         setProperties();
+
+        authService.loadUserFromFile();
     }
 
     public static MainWindow getInstance() {
@@ -88,8 +91,6 @@ public class MainWindow implements IView {
         fileMenu.add(viewTransactions);
         fileMenu.add(viewRequests);
         menuBar.add(fileMenu);
-
-
     }
 
     public void addComponents() {
@@ -104,16 +105,16 @@ public class MainWindow implements IView {
         cardLayout.addLayoutComponent(customerScreen, CUSTOMER_SCREEN);
         cardLayout.addLayoutComponent(employeeScreen, EMPLOYEE_SCREEN);
 
-        cardLayout.show(frame.getContentPane(), LOAD_SCREEN);
+        cardLayout.show(frame.getContentPane(), SIGN_IN);
 
 //
-        java.util.Timer timer = new java.util.Timer("load-screen-timer");
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                switchFromLoading();
-            }
-        }, 5000);
+//        java.util.Timer timer = new java.util.Timer("load-screen-timer");
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                switchFromLoading();
+//            }
+//        }, 5000);
     }
 
     private void switchFromLoading() {
@@ -124,11 +125,11 @@ public class MainWindow implements IView {
         authService.addAuthChangedListener(new AuthChangedListener<User>() {
             @Override
             public void onAuthChanged(User user) {
-                if (user == null && cardLayout.getSelectedCardName().compareTo(SIGN_IN) != 0) {
+                System.out.println(user);
+                if (user == null && !cardLayout.isCurrentCard(SIGN_IN)) {
                     cardLayout.show(frame.getContentPane(), SIGN_IN);
                 } else {
-                    if (cardLayout.isCurrentCard(SIGN_IN)) {
-                        assert user != null;
+                    if (cardLayout.isCurrentCard(SIGN_IN) && user != null) {
                         switch (user.getAccountType()) {
                             case CUSTOMER -> cardLayout.show(frame.getContentPane(), CUSTOMER_SCREEN);
                             case EMPLOYEE -> cardLayout.show(frame.getContentPane(), EMPLOYEE_SCREEN);
@@ -143,7 +144,8 @@ public class MainWindow implements IView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 User user = AuthService.getInstance().getLoggedInUser();
-                new TransactionDialog();
+                TransactionDialog transactionDialog = new TransactionDialog();
+                transactionDialog.setVisible(true);
 
                 if (user != null && user.getAccountType() == UserType.CUSTOMER) {
                     new TransactionDialog();
@@ -155,13 +157,14 @@ public class MainWindow implements IView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 User user = AuthService.getInstance().getLoggedInUser();
-                new UserRequests();
                 if (user != null && user.getAccountType() == UserType.CUSTOMER) {
-                    new UserRequests();
+                    UserRequests userRequests = new UserRequests();
+                    userRequests.setVisible(true);
                 }
             }
         });
     }
+
 
     @Override
     public void setProperties() {

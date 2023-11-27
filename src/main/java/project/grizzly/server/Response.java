@@ -1,5 +1,8 @@
 package project.grizzly.server;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 
 public class Response implements Serializable {
@@ -25,6 +28,22 @@ public class Response implements Serializable {
 
     public void setResponse(Object response) {
         this.response = response;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Response response1 = (Response) o;
+
+        return new EqualsBuilder().append(request, response1.request).append(response, response1.response).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(request).append(response).toHashCode();
     }
 
     @Override

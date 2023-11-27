@@ -31,7 +31,7 @@ public class RequestBox extends JPanel implements IView {
 
     @Override
     public void initializeComponents() {
-        customerName = new JLabel("Customer: " + request.getInvoice().getCustomer().getFirstName() + " " + request.getInvoice().getCustomer().getFirstName());
+        customerName = new JLabel("Customer: " + request.getInvoice().getCustomer().getFirstName() + " " + request.getInvoice().getCustomer().getLastName());
         requestId = new JLabel("Request Id: " + request.getRequestId());
         invoiceId = new JLabel("Invoice Id: " + request.getInvoice().getInvoiceId());
         requestDate = new JLabel("Request Date: " + request.getRequestDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")));

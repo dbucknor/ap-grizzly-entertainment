@@ -11,7 +11,7 @@ import java.io.ObjectOutputStream;
 import java.net.*;
 import java.util.concurrent.*;
 
-public class Client {
+public class Client extends Thread {
     private ObjectInputStream is;
     private ObjectOutputStream os;
     private Socket connection;
@@ -22,11 +22,16 @@ public class Client {
     private final BlockingQueue<Response> responseQueue = new LinkedBlockingQueue<>();
 
     public Client() {
+        start();
+    }
+
+    @Override
+    public void run() {
         createConnection();
         getStreams();
         processRequests();
+        super.run();
     }
-
 
     public static Client getInstance() {
         if (instance == null) {
@@ -79,8 +84,9 @@ public class Client {
     public void sendRequest(Request request) throws InterruptedException {
 //        executor.submit(() -> {
         try {
+//            if (requestQueue.contains(request)) return;
             requestQueue.put(request);
-            logger.info("Added to queue Request: " + request);
+            logger.info("Added to queue Request: " + request + "\n");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -102,11 +108,11 @@ public class Client {
         executor.submit(() -> {
             while (true) {
                 try {
-                    System.out.println("processss");
                     Request o = requestQueue.take();
                     os.writeObject(o);
-                    logger.info("Sent queue object: " + o);
-                    processResponse(o);
+                    logger.info("Sent queue object: " + o + "\n");
+//                    System.out.println("Request Queue: " + requestQueue + "\n\n");
+                    processResponse();
                 } catch (IOException | InterruptedException ex) {
                     logger.error(ex.getMessage());
                     ex.printStackTrace();
@@ -115,29 +121,24 @@ public class Client {
         });
     }
 
-    public void processResponse(Request request) {
+    public void processResponse() {
         try {
-            Response o = is != null ? (Response) is.readObject() : null;
-            responseQueue.put(o);
+            if (is != null) {
+                Response r = (Response) is.readObject();
+                responseQueue.put(r);
+            } else {
+                responseQueue.put(new Response(null, null));
+            }
         } catch (Exception ex) {
             logger.error(ex.getMessage());
         }
     }
 
-    public Object receiveResponse() {
+    public Object receiveResponse(Request request) {
         Future<Object> f = executor.submit((Callable<Object>) () -> {
-            try {
-//            if(isResponseForRequest(request)){
-//
-//            }
-                Response o = responseQueue.take();
-                logger.info("Response  received: " + o);
-                return o;
-            } catch (Exception ex) {
-                logger.error(ex.getMessage());
-                return null;
-            }
-
+            Response o = responseQueue.take();
+            logger.info("Response  received: " + o + "\n");
+            return o;
         });
 
         try {
@@ -148,7 +149,41 @@ public class Client {
         }
     }
 
+    private Object getResponseFromQueue(Request request, Integer retry) {
+        try {
+//            if (retry == 10) {
+//                return resendRequest(request, retry);
+//            }
+//            if (retry == 30) {
+//                return new Response(request, null);
+//            }
+//
+//            if (responseQueue.peek() != null && isResponseForRequest(request)) {
+            Response o = responseQueue.take();
+            logger.info("Response  received: " + o + "\n");
+            return o;
+//            } else {
+//                Thread.sleep(1000L * retry);
+//                retry++;
+//                System.out.println("Waiting for my response for request: \n" + request + "\n\n");
+//                System.out.println("Queue : " + responseQueue + "\n\n");
+//                return getResponseFromQueue(request, retry);
+//            }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            return null;
+        }
+    }
+
+    private Object resendRequest(Request request, Integer retry) throws InterruptedException {
+        sendRequest(request);
+        retry++;
+
+        return getResponseFromQueue(request, retry);
+    }
+
     private boolean isResponseForRequest(Request request) {
+        assert responseQueue.peek() != null;
         return responseQueue.peek().getRequest().equals(request);
     }
 

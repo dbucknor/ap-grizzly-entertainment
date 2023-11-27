@@ -3,13 +3,19 @@ package project.grizzly.application.views.components;
 import project.grizzly.application.controllers.TableController;
 import project.grizzly.application.models.FieldConfig;
 import project.grizzly.application.models.InvoiceItem;
+import project.grizzly.application.models.RentalRequest;
 import project.grizzly.application.models.Transaction;
 import project.grizzly.application.models.interfaces.IView;
 import project.grizzly.application.models.interfaces.TableUpdateListener;
+import project.grizzly.application.services.AuthService;
+import project.grizzly.application.services.CombinedQuery;
 import project.grizzly.application.views.screens.MainWindow;
+import project.grizzly.server.Request;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +26,9 @@ public class TransactionDialog extends JDialog implements IView {
 
     public TransactionDialog() {
         super(MainWindow.getInstance().getFrame(), "Transactions", true);
-        controller = new TableController<>(Transaction.class);
+        controller = new TableController<>(Transaction.class, new Request("READ-WHERE", "TRANSACTION",
+                new CombinedQuery<Transaction>("SELECT t FROM Transaction t").where("t.owner.userId",
+                        "=:cid", AuthService.getInstance().getLoggedInUser().getUserId())));
 
         initializeComponents();
         addComponents();
@@ -42,7 +50,7 @@ public class TransactionDialog extends JDialog implements IView {
 
     private void addItems() {
         items.removeAll();
-        for (Transaction t : controller.getAllRecords()
+        for (Transaction t : controller.getRecords()
         ) {
             items.add(listItem(t));
             items.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -57,6 +65,14 @@ public class TransactionDialog extends JDialog implements IView {
                 addItems();
             }
         });
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                controller.refreshData();
+                super.componentShown(e);
+            }
+        });
     }
 
     @Override
@@ -66,7 +82,7 @@ public class TransactionDialog extends JDialog implements IView {
         this.setMaximumSize(new Dimension(900, 700));
 
         this.setLocationRelativeTo(null);
-        this.setVisible(true);
+//        this.setVisible(true);
     }
 
     private Box listItem(Transaction transaction) {

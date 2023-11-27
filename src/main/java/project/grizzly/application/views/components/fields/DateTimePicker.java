@@ -54,51 +54,14 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
         timeSetting = new TimePickerSettings(locale);
         dateSettings = new DatePickerSettings(locale);
 
-//        dateSettings.setVetoPolicy(new DateVetoPolicy() {
-//            @Override
-//            public boolean isDateAllowed(LocalDate localDate) {
-//                boolean b = true;
-//
-//                if (min != null) {
-//                    b = localDate.isAfter(min.toLocalDate());
-//                }
-//                if (max != null) {
-//                    b = localDate.isBefore(max.toLocalDate());
-//                }
-//                if (disabledEnd != null) {
-//                    b = localDate.isAfter(disabledEnd.toLocalDate());
-//                }
-//                if (disabledStart != null) {
-//                    b = localDate.isBefore(disabledStart.toLocalDate());
-//                }
-//
-//                return b;
-//            }
-//        });
-
-//        timeSetting.setVetoPolicy(new TimeVetoPolicy() {
-//            @Override
-//            public boolean isTimeAllowed(LocalTime localTime) {
-//                boolean b = true;
-//
-//                if (min != null) {
-//                    b = localTime.isAfter(min.toLocalTime());
-//                }
-//                if (max != null) {
-//                    b = localTime.isBefore(max.toLocalTime());
-//                }
-//                if (disabledEnd != null) {
-//                    b = localTime.isAfter(disabledEnd.toLocalTime());
-//                }
-//                if (disabledStart != null) {
-//                    b = localTime.isBefore(disabledStart.toLocalTime());
-//                }
-//
-//                return b;
-//            }
-//        });
 
         field = new com.github.lgooddatepicker.components.DateTimePicker(dateSettings, timeSetting);
+
+        if (min != null) {
+            field.setDateTimeStrict(min);
+        } else {
+            field.setDateTimeStrict(LocalDateTime.now());
+        }
 
         configDateSettings();
         configTimeSettings();
@@ -117,8 +80,10 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
         fieldLbl.setForeground(Color.DARK_GRAY);
         fieldLbl.setText(label);
         fieldLbl.setVisible(label != null);
-        value = field.getDateTimeStrict();
 
+        if (value == null) {
+            value = field.getDateTimeStrict();
+        }
     }
 
     @Override
@@ -127,6 +92,7 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
 
     @Override
     public void addListeners() {
+
         field.addDateTimeChangeListener(new DateTimeChangeListener() {
             @Override
             public void dateOrTimeChanged(DateTimeChangeEvent dateTimeChangeEvent) {
@@ -138,9 +104,6 @@ public class DateTimePicker extends JPanel implements IFormField<LocalDateTime>,
 
     @Override
     public void setProperties() {
-        if (value != null) {
-            field.setDateTimeStrict(value);
-        }
 
         this.setLayout(new BorderLayout());
 

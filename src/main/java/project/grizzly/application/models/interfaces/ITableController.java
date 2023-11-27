@@ -49,7 +49,7 @@ public interface ITableController<T, K> {
      *
      * @return table records
      */
-    List<T> fetchTableData();
+    List<T> fetchRecords();
 
     /**
      * Converts records to a list of Object[] values

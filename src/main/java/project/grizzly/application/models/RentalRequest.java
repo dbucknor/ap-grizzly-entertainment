@@ -122,6 +122,14 @@ public class RentalRequest implements Serializable, ITableEntity {
         this.approvedBy = employee;
     }
 
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+    }
+
     public Customer getRequestFrom() {
         return requestFrom;
     }

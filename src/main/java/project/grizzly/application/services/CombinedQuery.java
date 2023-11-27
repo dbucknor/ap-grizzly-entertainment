@@ -12,8 +12,8 @@ public class CombinedQuery<T> implements Serializable {
     private String queryString;
     private HashMap<String, Object> values;
 
-    public CombinedQuery(String clause) {
-        this.queryString = clause;
+    public CombinedQuery(String hql) {
+        this.queryString = hql;
         this.values = new HashMap<>();
     }
 
@@ -35,7 +35,12 @@ public class CombinedQuery<T> implements Serializable {
     }
 
     private void generateQuery(Session session) {
-        query = session.createQuery(queryString);
+        try {
+            query = (Query<T>) session.createQuery(queryString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
         for (String key :
                 values.keySet()) {
