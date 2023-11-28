@@ -105,16 +105,16 @@ public class MainWindow implements IView {
         cardLayout.addLayoutComponent(customerScreen, CUSTOMER_SCREEN);
         cardLayout.addLayoutComponent(employeeScreen, EMPLOYEE_SCREEN);
 
-        cardLayout.show(frame.getContentPane(), SIGN_IN);
+        cardLayout.show(frame.getContentPane(), LOAD_SCREEN);
 
 //
-//        java.util.Timer timer = new java.util.Timer("load-screen-timer");
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                switchFromLoading();
-//            }
-//        }, 5000);
+        java.util.Timer timer = new java.util.Timer("load-screen-timer");
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                switchFromLoading();
+            }
+        }, 5000);
     }
 
     private void switchFromLoading() {

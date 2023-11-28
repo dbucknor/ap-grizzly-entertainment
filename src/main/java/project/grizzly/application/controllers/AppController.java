@@ -67,7 +67,6 @@ public class AppController {
 
         ColorScheme light = new ColorScheme(primary, secondary, accent1, accent2, neutralDark, neutralLight);
 
-
         ColorScheme dark = new ColorScheme(primary, secondary, accent1, accent2, neutralDark, neutralLight);
 
         themeManager.setCurrentScheme(light);

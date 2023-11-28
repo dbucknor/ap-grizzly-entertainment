@@ -197,8 +197,8 @@ class ClientHandler {
                 return;
             }
             if (req.getAction().compareTo("READ-ALL") == 0) {
-                logger.info("READING All");
                 List<Object> objs = crud.readAll();
+//                Database.runScript("SELECT * FROM " + req.getEntity());
                 addToResponseQueue(new Response(req, objs));
                 processResponse();
                 return;

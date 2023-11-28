@@ -9,6 +9,9 @@ import org.springframework.context.annotation.Bean;
 import project.grizzly.application.models.*;
 import project.grizzly.application.models.equipment.*;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 
 @SpringBootApplication
@@ -42,6 +45,22 @@ public class ServerDriver {
     @Bean
     public int port() {
         return 8888;
+    }
+
+    @Bean
+    public Connection getDBConnection() {
+        String DB_URL = "jdbc:mysql://localhost:3306/";
+        String USER = "root";
+        String PASSWORD = "#h@rV3st";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+        ) {
+            logger.info("Database Loaded: " + conn.getMetaData().toString());
+            return conn;
+        } catch (SQLException e) {
+            logger.error(e.getMessage());
+            return null;
+        }
     }
 
 
