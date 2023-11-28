@@ -15,9 +15,9 @@ public class RequestBox extends JPanel implements IView {
     private JLabel requestId, invoiceId, customerName, requestDate;
     private RentalRequest request;
     private ThemeManager theme;
-    private TableController<RentalRequest, String> controller;
+    private TableController<RentalRequest, Integer> controller;
 
-    public RequestBox(RentalRequest request, TableController<RentalRequest, String> controller) {
+    public RequestBox(RentalRequest request, TableController<RentalRequest, Integer> controller) {
         super(new GridLayout(2, 2));
         this.request = request;
         this.controller = controller;
@@ -31,7 +31,7 @@ public class RequestBox extends JPanel implements IView {
 
     @Override
     public void initializeComponents() {
-        customerName = new JLabel("Customer: " + request.getInvoice().getCustomer().getFirstName() + " " + request.getInvoice().getCustomer().getFirstName());
+        customerName = new JLabel("Customer: " + request.getInvoice().getCustomer().getFirstName() + " " + request.getInvoice().getCustomer().getLastName());
         requestId = new JLabel("Request Id: " + request.getRequestId());
         invoiceId = new JLabel("Invoice Id: " + request.getInvoice().getInvoiceId());
         requestDate = new JLabel("Request Date: " + request.getRequestDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")));

@@ -3,29 +3,30 @@ package project.grizzly.application.views.components;
 import project.grizzly.application.controllers.CustomerScreenController;
 import project.grizzly.application.models.InvoiceItem;
 import project.grizzly.application.models.enums.ButtonSize;
+
 import project.grizzly.application.models.interfaces.IView;
 import project.grizzly.application.theme.ThemeManager;
 import project.grizzly.application.views.components.fields.Button;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.time.format.DateTimeFormatter;
 
 public class ListItem extends Box implements IView {
-    private InvoiceItem invoiceItem;
-    private CustomerScreenController controller;
-    private ThemeManager theme;
-    private JLabel imageLbl, name, rentPeriod, price;
-    private Button remove;
-    private JPanel imgPan;
-    private Box infoPan, box;
 
-    public ListItem(InvoiceItem invoiceItem, CustomerScreenController controller) {
+    private JPanel checkPanel, imgPan;
+    private Box container;
+    private JLabel name, price, image, periodLbl;
+    private Button button;
+    private ThemeManager theme;
+    private InvoiceItem item;
+
+    public ListItem(InvoiceItem item) {
         super(BoxLayout.X_AXIS);
-        this.invoiceItem = invoiceItem;
-        this.controller = controller;
         this.theme = ThemeManager.getInstance();
+        this.item = item;
 
         initializeComponents();
         addComponents();
@@ -33,65 +34,136 @@ public class ListItem extends Box implements IView {
         setProperties();
     }
 
-
-    @Override
     public void initializeComponents() {
-        imageLbl = new JLabel(invoiceItem.getEquipment().getImage());
-        imageLbl.setMaximumSize(new Dimension(120, 120));
-        name = new JLabel(invoiceItem.getEquipment().getName());
-        rentPeriod = new JLabel(invoiceItem.getRentPeriod().formatted());
+        container = new Box(BoxLayout.Y_AXIS);
+        imgPan = new JPanel();
+        periodLbl = new JLabel(item.getRentalStartDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")) + "-" + item.getRentalEndDate().format(DateTimeFormatter.ofPattern("EEEE, MMM dd, yyyy HH:mm:ss a")));
 
-        price = new JLabel("Price: $ " + invoiceItem.getTotalPrice());
-        price.setForeground(theme.getCurrentScheme().getPrimary());
-        price.setFont(theme.getFontLoader().getH2().deriveFont(14f));
+        button = new Button("Remove", ButtonSize.SMALL);
+        price = new JLabel(Double.toString(item.getTotalPrice()));
 
-        remove = new Button("Remove", ButtonSize.SMALL);
-        infoPan = new Box(BoxLayout.Y_AXIS);
-        box = new Box(BoxLayout.X_AXIS);
+        checkPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        checkPanel.setBackground(theme.getCurrentScheme().getAccent1());
 
-        box.add(rentPeriod);
-        box.add(remove);
+        checkPanel.add(periodLbl);
+        checkPanel.add(price);
+        checkPanel.add(button);
 
-        infoPan.add(name);
-        infoPan.add(box);
+
+        name = new JLabel(item.getEquipment().getName());
+        container.add(name);
+        container.add(checkPanel);
+        image = new JLabel("add image");//todo
+        image.setSize(new Dimension(100, 100));
+        imgPan.add(image);
+        imgPan.setPreferredSize(new Dimension(100, 100));
+//        image = new JLabel(new ImageIcon(image.getScaledInstance(150, 150, Image.SCALE_SMOOTH));//todo
     }
 
-    @Override
     public void addComponents() {
-        this.add(imageLbl);
-        this.add(infoPan);
-
+        this.add(image);
+        this.add(container);
     }
 
-    @Override
     public void addListeners() {
-        remove.addActionListener(new ActionListener() {
+
+        button.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.removeFromRequest(invoiceItem);
+                CustomerScreenController.getInstance().removeFromRequest(item);
+
             }
         });
     }
 
-    @Override
     public void setProperties() {
+        Border emptyBorder = BorderFactory.createEmptyBorder(0, 0, 0, 0);
+        Border bottomBorder = BorderFactory.createMatteBorder(0, 0, 4, 0, Color.BLUE);
+        Border compoundBorder = BorderFactory.createCompoundBorder(emptyBorder, bottomBorder);
 
+
+        this.setBackground(theme.getCurrentScheme().getNeutralLight());
+        this.setBorder(compoundBorder);
+        this.setVisible(true);
     }
-
-    public InvoiceItem getInvoiceItem() {
-        return invoiceItem;
-    }
-
-    public void setInvoiceItem(InvoiceItem invoiceItem) {
-        this.invoiceItem = invoiceItem;
-    }
-
-    public CustomerScreenController getController() {
-        return controller;
-    }
-
-    public void setController(CustomerScreenController controller) {
-        this.controller = controller;
-    }
-
 }
+
+/*
+*
+
+    private JPanel listIem(){
+        Border emptyBorder = BorderFactory.createEmptyBorder(0, 0, 0, 0);
+        Border bottomBorder = BorderFactory.createMatteBorder(0, 0, 4, 0, Color.BLUE);
+        Border compoundBorder = BorderFactory.createCompoundBorder(emptyBorder, bottomBorder);
+
+        JPanel itemPanel = new JPanel(new GridBagLayout());
+                itemPanel.setBackground(new Color(255, 255, 255));
+                itemPanel.setBorder(compoundBorder);
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.insets = new Insets(0, 0, 0, 5);
+
+        Image image = Toolkit.getDefaultToolkit().getImage("");
+        ImageIcon icon = new ImageIcon(image.getScaledInstance(150, 150, Image.SCALE_SMOOTH));
+
+        JTextArea nameTextArea = new JTextArea(ITEM_NAME);
+       nameTextArea.setFont(new Font("Arial", Font.BOLD, 12));
+       nameTextArea
+       nameTextArea.setWrapStyleWord(true);
+       nameTextArea.setPreferredSize(new Dimension(990, 150));
+       itemPanel.add(nameTextArea, c);
+
+
+        JLabel imageLabel = new JLabel(icon);
+        itemPanel.add(imageLabel, c);
+        c.gridx = 1;
+        c.gridy = 0;
+        c.insets = new Insets(0, 0, 0, 0);
+        // JPanel NamePanel=new JPanel();
+
+        c.gridx = 1;
+        c.gridy = 1;
+        c.gridwidth = 2; // span two columns
+        c.fill = GridBagConstraints.HORIZONTAL; // allow horizontal expansion
+        c.insets = new Insets(5, 0, 0, 0);
+
+        JPanel checkPanel = new JPanel(new FlowLayout());
+        checkPanel.setBackground(color);
+
+        JTextField qtyLabel = new JTextField(ITEM_QTY);
+        qtyLabel.setPreferredSize(new Dimension(190, 30));
+        qtyLabel.setForeground(color5);
+        qtyLabel.setBackground(color);
+        qtyLabel.setBorder(null);
+        qtyLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        checkPanel.add(qtyLabel);
+
+        JTextField periodLabel = new JTextField(ITEM_PERIOD);
+        periodLabel.setPreferredSize(new Dimension(200, 30));
+        periodLabel.setForeground(color5);
+        periodLabel.setBackground(color);
+        periodLabel.setBorder(null);
+        periodLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        checkPanel.add(periodLabel);
+
+        JTextField priceLabel = new JTextField(ITEM_PRICE);
+        priceLabel.setPreferredSize(new Dimension(200, 30));
+        priceLabel.setForeground(color5);
+        priceLabel.setBackground(color);
+        priceLabel.setBorder(null);
+        priceLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+        checkPanel.add(priceLabel);
+
+        JButton removeButton = new JButton(REMOVE_BUTTON_TEXT);
+        removeButton.setBackground(color2);
+        removeButton.setForeground(Color.WHITE);
+        checkPanel.add(removeButton);
+
+        itemPanel.add(checkPanel, c);
+        return  panel;
+    }
+
+*
+* */

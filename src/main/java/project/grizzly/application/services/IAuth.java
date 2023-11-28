@@ -8,7 +8,7 @@ public interface IAuth<T> {
 
     public void logOut();
 
-    public T logIn(String email, String password) throws AuthException;
+    public void logIn(String email, String password) throws AuthException;
 
     public void addAuthChangedListener(AuthChangedListener<T> listener);
 

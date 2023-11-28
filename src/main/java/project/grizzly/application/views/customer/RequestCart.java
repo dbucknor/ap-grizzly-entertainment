@@ -1,13 +1,17 @@
 package project.grizzly.application.views.customer;
 
 import project.grizzly.application.controllers.CustomerScreenController;
+import project.grizzly.application.models.Customer;
+import project.grizzly.application.models.Invoice;
 import project.grizzly.application.models.InvoiceItem;
 import project.grizzly.application.models.RentalRequest;
 import project.grizzly.application.models.enums.ButtonSize;
 
 import project.grizzly.application.models.interfaces.FieldListeners;
 import project.grizzly.application.models.interfaces.IView;
+import project.grizzly.application.services.AuthService;
 import project.grizzly.application.theme.ThemeManager;
+import project.grizzly.application.views.components.CartItem;
 import project.grizzly.application.views.components.ListItem;
 import project.grizzly.application.views.components.fields.Button;
 
@@ -22,6 +26,7 @@ public class RequestCart extends Box implements IView {
     private JLabel itemsLbl;
     private JScrollPane scrollPane;
     private Box itemsPanel, checkout, itemsList, infoPanel, btnPanel;
+    private Box totalPrice, subTotal, itemCount, discount;
     private Button request, clear;
     private ThemeManager theme;
     private CustomerScreenController controller;
@@ -40,6 +45,10 @@ public class RequestCart extends Box implements IView {
     public void initializeComponents() {
         itemsLbl = new JLabel("Items To Rent");
         itemsPanel = new Box(BoxLayout.Y_AXIS);
+        itemsPanel.setBackground(theme.getCurrentScheme().getNeutralLight());
+        itemsPanel.setPreferredSize(new Dimension(Double.valueOf(Toolkit.getDefaultToolkit().getScreenSize().width * 0.6).intValue(), Toolkit.getDefaultToolkit().getScreenSize().height));
+        itemsPanel.setMaximumSize(new Dimension(Double.valueOf(Toolkit.getDefaultToolkit().getScreenSize().width * 0.6).intValue(), Toolkit.getDefaultToolkit().getScreenSize().height));
+
         itemsList = new Box(BoxLayout.Y_AXIS);
         scrollPane = new JScrollPane(itemsList);
 
@@ -71,13 +80,7 @@ public class RequestCart extends Box implements IView {
     }
 
     public void addComponents() {
-        infoPanel.add(pricePanel("# of Items: ", Integer.toString(controller.getInvoice().getItems().size())));
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        infoPanel.add(pricePanel("Sub-Total:", "$ " + (controller.getInvoice().getTotalPrice() - controller.getInvoice().getDiscount())));
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        infoPanel.add(pricePanel("Discount:", "$ " + controller.getInvoice().getDiscount()));
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        infoPanel.add(pricePanel("Total:", "$ " + controller.getInvoice().getTotalPrice()));
+        addInfoPanels();
 
         addItems();
 
@@ -88,10 +91,21 @@ public class RequestCart extends Box implements IView {
         this.add(Box.createRigidArea(new Dimension(50, 0)));
     }
 
+    private void addInfoPanels() {
+        infoPanel.removeAll();
+        infoPanel.add(pricePanel("# of Items: ", Integer.toString(controller.getInvoice().getItems().size())));
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(pricePanel("Sub-Total:", "$ " + (controller.getInvoice().getTotalPrice() - controller.getInvoice().getDiscount())));
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(pricePanel("Discount:", "$ " + controller.getInvoice().getDiscount()));
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        infoPanel.add(pricePanel("Total:", "$ " + controller.getInvoice().getTotalPrice()));
+    }
+
     private void addItems() {
         itemsList.removeAll();
         for (InvoiceItem it : controller.getInvoice().getItems()) {
-            itemsList.add(new ListItem(it, controller));
+            itemsList.add(new CartItem(it));
             itemsList.add(Box.createRigidArea(new Dimension(0, 15)));
             System.out.println("add to view");
         }
@@ -102,6 +116,7 @@ public class RequestCart extends Box implements IView {
             @Override
             public void onChange(List<InvoiceItem> fieldValue) {
                 addItems();
+                addInfoPanels();
             }
 
             @Override
@@ -112,13 +127,26 @@ public class RequestCart extends Box implements IView {
         request.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                RentalRequest rr = new RentalRequest(null, LocalDateTime.now(), false, controller.getInvoice(), null);
-                controller.getInvoice().setRentalRequest(rr);
-                controller.getInvoice().setInvoiceDate(LocalDateTime.now());
-                controller.getInvoice().setDiscount(0);
+                if (controller.getInvoice() == null || controller.getInvoice().getItems().isEmpty()) {
+                    return;
+                }
 
-                rr.setInvoice(controller.getInvoice());
-                controller.sendRequest(rr);
+                RentalRequest rentalReq = new RentalRequest(1, LocalDateTime.now(), false, controller.getInvoice(), null);
+                rentalReq.setRequestFrom((Customer) AuthService.getInstance().getLoggedInUser());
+
+                Invoice invoice = controller.getInvoice();
+                invoice.setRentalRequest(rentalReq);
+                invoice.setInvoiceDate(LocalDateTime.now());
+                invoice.setDiscount(0);
+                invoice.setCustomer((Customer) AuthService.getInstance().getLoggedInUser());
+
+                rentalReq.setInvoice(invoice);
+                controller.sendInvoice(invoice);
+                controller.sendRequest(rentalReq);
+
+                controller.emptyCart();
+                addInfoPanels();
+                revalidate();
             }
         });
 
@@ -126,6 +154,8 @@ public class RequestCart extends Box implements IView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 controller.emptyCart();
+                addInfoPanels();
+                revalidate();
             }
         });
     }

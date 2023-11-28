@@ -13,6 +13,7 @@ import java.util.List;
 @Table(name = "rentalrequest")
 public class RentalRequest implements Serializable, ITableEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "requestId")
     private Integer requestId;
     @Column(name = "requestDate")
@@ -119,6 +120,14 @@ public class RentalRequest implements Serializable, ITableEntity {
 
     public void setApprovedBy(Employee employee) {
         this.approvedBy = employee;
+    }
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
     }
 
     public Customer getRequestFrom() {

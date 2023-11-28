@@ -1,12 +1,13 @@
 package project.grizzly.application.controllers;
 
-import project.grizzly.application.models.*;
 import project.grizzly.application.models.interfaces.ITableController;
 import project.grizzly.application.models.interfaces.ITableEntity;
 import project.grizzly.application.models.interfaces.TableUpdateListener;
 import project.grizzly.application.services.Client;
 import project.grizzly.application.services.CombinedQuery;
 import project.grizzly.application.models.TableConfig;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
 import javax.persistence.Id;
 import javax.swing.*;
@@ -28,14 +29,14 @@ import java.util.concurrent.*;
 public class TableController<T extends ITableEntity, K extends Serializable> implements ITableController<T, K> {
     protected TableConfig tableConfig;
     protected List<K> selectedRecords;
-    // private CRUDService<T, K> crudService;
     protected Class<T> clazz;
     protected T editingRecord;
-    protected List<T> allRecords;
+    protected List<T> records;
     protected List<T> filteredRecords;
     protected final ArrayList<TableUpdateListener> listeners;
     protected final Client client;
     protected ExecutorService executorService = Executors.newCachedThreadPool();
+    protected Request request;
 
     /**
      * Creates a new Table Controller
@@ -43,41 +44,56 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
      * @param clazz Class<T> of Entity, Entity class
      */
     public TableController(Class<T> clazz) {
-        // crudService = new CRUDService<>(clazz);
+        this.listeners = new ArrayList<>();
+        this.selectedRecords = new ArrayList<>();
+        this.request = new Request("READ-ALL", clazz.getSimpleName().toUpperCase(), null);
 
-        listeners = new ArrayList<>();
-        selectedRecords = new ArrayList<>();
-
-        allRecords = new ArrayList<>();
-        editingRecord = null;
+        this.records = new ArrayList<>();
+        this.editingRecord = null;
         this.clazz = clazz;
 
-        client = Client.getInstance();
+        this.client = Client.getInstance();
 
-        tableConfig = getConfig();
-        refreshData();
+        this.tableConfig = getConfig();
     }
 
+    public TableController(Class<T> clazz, Request fetchRequest) {
+        this.listeners = new ArrayList<>();
+        this.selectedRecords = new ArrayList<>();
+        this.request = fetchRequest;
+        this.records = new ArrayList<>();
+        this.editingRecord = null;
+        this.clazz = clazz;
+
+        this.client = Client.getInstance();
+
+        this.tableConfig = getConfig();
+    }
+
+
     @Override
-    public TableConfig getConfig() {
+    public List<T> fetchRecords() {
         try {
-            return createObject(clazz).createEntityTableCfg();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException
-                 | NoSuchMethodException e) {
-            logger.error(e.getMessage());
-            return new TableConfig();
+            client.sendRequest(request);
+            Response res = (Response) client.receiveResponse(request);
+
+            Object o = res.getValue();
+            return o != null ? (List<T>) o : new ArrayList<>();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+
     }
 
     @Override
     public void insertRecord(T record) {
         executorService.submit(() -> {
             try {
-                client.sendAction("ADD " + clazz.getSimpleName().toUpperCase());
-                client.send(record);
+                Request r = new Request("ADD", clazz.getSimpleName().toUpperCase(), record);
+                client.sendRequest(r);
 
-                Object isCreated = client.receiveResponse();
-                refreshData();
+                Object isCreated = ((Response) client.receiveResponse(r)).getValue();
+
 
                 SwingUtilities.invokeLater(() -> {
                     if (isCreated instanceof Boolean && (Boolean) isCreated) {
@@ -86,7 +102,7 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
                         JOptionPane.showMessageDialog(null, "Error! Record Not Created!");
                     }
                 });
-
+                refreshData();
             } catch (Exception e) {
                 logger.error("Error creating record");
                 logger.error(e.getMessage());
@@ -103,9 +119,9 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         try {
             Future<T> future = executorService.submit((Callable<T>) () -> {
                 try {
-                    client.sendAction("READ " + clazz.getSimpleName().toUpperCase());
-                    client.send(id);
-                    Object o = client.receiveResponse();
+                    Request r = new Request("READ", clazz.getSimpleName().toUpperCase(), id);
+                    client.sendRequest(r);
+                    Object o = ((Response) client.receiveResponse(r)).getValue();
 
                     return (T) o;
 
@@ -133,9 +149,9 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
     public void updateRecord(T record) {
         executorService.submit(() -> {
             try {
-                client.sendAction("UPDATE " + clazz.getSimpleName().toUpperCase());
-                client.send(record);
-                Object isUpdated = client.receiveResponse();
+                Request r = new Request("UPDATE", clazz.getSimpleName().toUpperCase(), record);
+                client.sendRequest(r);
+                Object isUpdated = ((Response) client.receiveResponse(r)).getValue();
 
                 SwingUtilities.invokeLater(() -> {
                     if (isUpdated instanceof Boolean && (Boolean) isUpdated) {
@@ -162,10 +178,10 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         ) {
             executorService.submit(() -> {
                 try {
-                    client.sendAction("DELETE " + clazz.getSimpleName().toUpperCase());
-                    client.send(id);
-
-                    Object isDeleted = client.receiveResponse();
+                    Request r = new Request("DELETE", clazz.getSimpleName().toUpperCase(), id);
+                    client.sendRequest(r);
+                    Response res = (Response) client.receiveResponse(r);
+                    Object isDeleted = res.getValue();
 
                     SwingUtilities.invokeLater(() -> {
                         if (isDeleted instanceof Boolean && (Boolean) isDeleted) {
@@ -188,17 +204,6 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
 
     }
 
-    @Override
-    public List<T> fetchTableData() {
-        try {
-            client.sendAction("READ-ALL " + clazz.getSimpleName().toUpperCase());
-            Object o = client.receiveResponse();
-            return o != null ? (List<T>) o : new ArrayList<>();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
     @Override
     public ArrayList<Object[]> recordsAsObjects(List<T> records) {
@@ -212,23 +217,19 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         return list;
     }
 
+    @Override
+
     public void refreshData() {
         executorService.submit(() -> {
-            List<T> records = fetchTableData();
+            List<T> records = this.fetchRecords();
 
             SwingUtilities.invokeLater(() -> {
-                allRecords = records.stream().map((u) -> clazz.cast(u)).toList();
-                tableConfig.setTableData(recordsAsObjects(allRecords));
+                this.records = records.stream().map((u) -> clazz.
+                        cast(u)).toList();
+                tableConfig.setTableData(recordsAsObjects(this.records));
                 updateListeners();
             });
         });
-    }
-
-    public static <T> T createObject(Class<T> clazz)
-            throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        Constructor<T> constructor = clazz.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        return constructor.newInstance();
     }
 
     public void filter(K id) {
@@ -236,11 +237,11 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
             String idName = Objects.requireNonNull(findIdField()).getName();
             executorService.submit(() -> {
                 try {
-                    client.sendAction("READ-WHERE " + clazz.getSimpleName().toUpperCase());
-                    client.send(new CombinedQuery<T>("SELECT t FROM " + clazz.getSimpleName() + " t")
+                    Request r = new Request("READ-WHERE", clazz.getSimpleName().toUpperCase(), new CombinedQuery<T>("SELECT t FROM " + clazz.getSimpleName() + " t")
                             .like("t." + idName, " LIKE :value", id));
+                    client.sendRequest(r);
 
-                    Object res = client.receiveResponse();
+                    Object res = ((Response) client.receiveResponse(r)).getValue();
 
                     SwingUtilities.invokeLater(() -> {
                         filteredRecords = res != null ? (List<T>) res : new ArrayList<>();
@@ -276,9 +277,28 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
     }
 
     public void resetTableData() {
-        tableConfig.setTableData(recordsAsObjects(allRecords));
+        tableConfig.setTableData(recordsAsObjects(records));
         updateListeners();
     }
+
+    @Override
+    public TableConfig getConfig() {
+        try {
+            return createObject(clazz).createEntityTableCfg();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException
+                 | NoSuchMethodException e) {
+            logger.error(e.getMessage());
+            return new TableConfig();
+        }
+    }
+
+    public static <T> T createObject(Class<T> clazz)
+            throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        Constructor<T> constructor = clazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor.newInstance();
+    }
+
 
     @Override
     public void addChangeListener(TableUpdateListener listener) {
@@ -302,6 +322,14 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
                 listener.onTableUpdate(tableConfig.getTitles(), tableConfig.getTableData(), tableConfig.getFieldConfigs());
             }
         }
+    }
+
+    public Request getRequest() {
+        return request;
+    }
+
+    public void setRequest(Request request) {
+        this.request = request;
     }
 
     public TableConfig getTableConfig() {
@@ -353,12 +381,12 @@ public class TableController<T extends ITableEntity, K extends Serializable> imp
         this.editingRecord = editingRecord;
     }
 
-    public List<T> getAllRecords() {
-        return allRecords;
+    public List<T> getRecords() {
+        return records;
     }
 
-    public void setAllRecords(List<T> allRecords) {
-        this.allRecords = allRecords;
+    public void setRecords(List<T> records) {
+        this.records = records;
     }
 
     public ArrayList<TableUpdateListener> getListeners() {

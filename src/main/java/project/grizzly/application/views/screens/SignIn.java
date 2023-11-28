@@ -25,7 +25,7 @@ import java.util.Objects;
 
 
 public class SignIn extends Screen {
-    private TextField email, password;
+    private TextField userId, password;
     private SelectField<UserType> loginType;
     private Button signInBtn, signUpBtn;
     private BufferedImage logo;
@@ -57,7 +57,7 @@ public class SignIn extends Screen {
         lbl1 = new JLabel("Log In");
         lbl1.setFont(new Font("Gobold CUTS", Font.PLAIN, 34));
 
-        email = new TextField("Email:", null);
+        userId = new TextField("Id:", null);
         password = new TextField("Password:", true);
 
         signInBtn = new Button("Sign In", ButtonSize.NORMAL);
@@ -91,7 +91,7 @@ public class SignIn extends Screen {
         formPanel.add(loginType, constraints);
 
         constraints.gridy = 3;
-        formPanel.add(email, constraints);
+        formPanel.add(userId, constraints);
 
         constraints.gridy = 4;
         formPanel.add(password, constraints);
@@ -136,7 +136,7 @@ public class SignIn extends Screen {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    authService.logIn(email.getValue(), password.getValue());
+                    authService.logIn(userId.getValue(), password.getValue());
                 } catch (AuthException ex) {
                     logger.error("Sign In Error: " + ex.getMessage());
                     JOptionPane.showMessageDialog(null, "Error Signing in!\n " + ex.getMessage(), "Sign In Error", JOptionPane.ERROR_MESSAGE);

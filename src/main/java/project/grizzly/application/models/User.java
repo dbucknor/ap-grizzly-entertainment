@@ -14,11 +14,12 @@ import java.util.Set;
 @Entity(name = "User")
 @Table(name = "User")
 @Inheritance(strategy = InheritanceType.JOINED)
-public class User implements Serializable, ITableEntity {
+public class User implements ITableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "userId")
     protected String userId;
+
     @Column(unique = true)
     protected String email;
     protected String password;

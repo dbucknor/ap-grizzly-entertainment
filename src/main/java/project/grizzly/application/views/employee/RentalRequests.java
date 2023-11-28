@@ -10,11 +10,13 @@ import project.grizzly.application.views.components.RequestBox;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RentalRequests extends JPanel implements IView {
-    private TableController<RentalRequest, String> controller;
+    private TableController<RentalRequest, Integer> controller;
     JScrollPane scrollPane;
     JLabel label;
     JPanel requests, mainPanel;
@@ -38,7 +40,7 @@ public class RentalRequests extends JPanel implements IView {
         label.setFont(theme.getFontLoader().getH2());
         requests = new JPanel(new GridLayout(1, 2));
 
-        for (RentalRequest rr : controller.getAllRecords()
+        for (RentalRequest rr : controller.getRecords()
         ) {
             requests.add(new RequestBox(rr, controller));
         }
@@ -58,13 +60,21 @@ public class RentalRequests extends JPanel implements IView {
         controller.addChangeListener(new TableUpdateListener() {
             @Override
             public void onTableUpdate(String[] titles, ArrayList<Object[]> tableData, List<FieldConfig> fieldConfigs) {
-                int rows = controller.getAllRecords().size() / 2;
+                int rows = controller.getRecords().size() / 2;
                 ((GridLayout) requests.getLayout()).setRows(rows);
 
-                for (RentalRequest rr : controller.getAllRecords()
+                for (RentalRequest rr : controller.getRecords()
                 ) {
                     requests.add(new RequestBox(rr, controller));
                 }
+            }
+        });
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                controller.refreshData();
+                super.componentShown(e);
             }
         });
     }

@@ -84,7 +84,7 @@ public class EmployeeScreen extends Screen {
         cardLayout.addLayoutComponent(employeeHome, "Home");
         cardLayout.addLayoutComponent(requestsView, "Requests");
         cardLayout.addLayoutComponent(tablesViews.getMainPanel(), "Tables");
-        cardLayout.show(container, "Requests");
+        cardLayout.show(container, "Home");
 
 
         this.add(sidePanel, BorderLayout.WEST);

@@ -7,13 +7,11 @@ import org.apache.logging.log4j.LogManager;
 
 public class CustomerScreen extends Screen {
 
-    private CustomerHome hone;
+    private CustomerHome home;
     private CustomCardLayout cardLayout;
     private final ClassLoader loader;
     public static final String CUSTOMER_HOME = "Customer-Home";
     public static final String REQUEST_CART = "Request-Cart";
-    private final String RESULT_SCREEN = "Customer-Home";
-    private ProductScreen productScreen;
     private RequestCart requestCart;
     private CustomerScreenController controller;
     private static CustomerScreen instance;
@@ -43,19 +41,19 @@ public class CustomerScreen extends Screen {
         container.setLayout(cardLayout);
 
         requestCart = new RequestCart();
-        hone = new CustomerHome(controller);
+        home = new CustomerHome(controller);
 
     }
 
     @Override
     public void addComponents() {
-        container.add(hone);
-        cardLayout.addLayoutComponent(hone, CUSTOMER_HOME);
+        container.add(home);
+        cardLayout.addLayoutComponent(home, CUSTOMER_HOME);
 
         container.add(requestCart);
         cardLayout.addLayoutComponent(requestCart, REQUEST_CART);
 
-        cardLayout.show(container, REQUEST_CART);
+        cardLayout.show(container, CUSTOMER_HOME);
         super.addComponents();
     }
 

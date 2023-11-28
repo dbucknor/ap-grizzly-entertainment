@@ -1,22 +1,29 @@
 package project.grizzly.application.services;
 
 import project.grizzly.application.models.User;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
+import javax.swing.*;
+import java.io.*;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.*;
 
 public class AuthService implements IAuth<User> {
     private User user = null;
     private final ArrayList<AuthChangedListener<User>> listeners;
-    //    private final CRUDService<User, String> crudService;
+
     private static AuthService instance;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     private Client client;
 
     private AuthService() {
         listeners = new ArrayList<>();
         client = Client.getInstance();
-//        crudService = new CRUDService<>(User.class); //TODO: change to bean
     }
 
     public static AuthService getInstance() {
@@ -24,6 +31,48 @@ public class AuthService implements IAuth<User> {
             instance = new AuthService();
         }
         return instance;
+    }
+
+    public void loadUserFromFile() {
+        ClassLoader loader = this.getClass().getClassLoader();
+        try {
+            FileInputStream fi = new FileInputStream(Objects.requireNonNull(loader.getResource("user/current.txt")).toURI().getPath());
+            ObjectInputStream os = new ObjectInputStream(fi);
+
+            Object o = os.readObject();
+
+            if (o instanceof User) {
+                user = (User) o;
+                user.setLoggedIn(true);
+
+                os.close();
+                fi.close();
+            } else {
+                os.close();
+                fi.close();
+                user = null;
+            }
+            updateListeners();
+
+        } catch (IOException | ClassNotFoundException | URISyntaxException e) {
+            e.printStackTrace();
+            user = null;
+            updateListeners();
+        }
+    }
+
+    private void writeUserToFile() {
+        ClassLoader loader = this.getClass().getClassLoader();
+        try (FileOutputStream fo = new FileOutputStream(Objects.requireNonNull(loader.getResource("user/current.txt")).toURI().getPath());
+             ObjectOutputStream os = new ObjectOutputStream(fo);
+        ) {
+            System.out.println("writing");
+            os.writeObject(this.user);
+            os.flush();
+        } catch (IOException | URISyntaxException e) {
+            //todo
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -34,6 +83,7 @@ public class AuthService implements IAuth<User> {
     @Override
     public void setLoggedInUser(User user) {
         this.user = user;
+        writeUserToFile();
 
         if (user != null) {
             this.user.setLoggedIn(true);
@@ -50,36 +100,41 @@ public class AuthService implements IAuth<User> {
     }
 
     @Override
-    public User logIn(String email, String password) throws AuthException {
-        try {
-//            client.getStreams();
-            client.sendAction("READ-WHERE USER");
-            client.send(new CombinedQuery<User>("SELECT u FROM User u")
-                    .where("u.email", "=:email", email));
+    public void logIn(String userId, String password) throws AuthException {
+        executor.submit(() -> {
+            try {
+                CombinedQuery<User> combinedQuery = new CombinedQuery<User>("SELECT u FROM User u")
+                        .where("u.userId", "=:userId", userId);
+                Request r = new Request("READ-WHERE", "USER", combinedQuery);
+                client.sendRequest(r);
 
-            Object results = client.receiveResponse();
-//            client();
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(null, "Signing you in. Please wait!");
+                });
 
-            User usr = results == null ? null : ((List<User>) results).get(0);
+                Object res = ((Response) client.receiveResponse(r)).getValue();
 
-            if (usr != null) {
-                if (usr.getPassword().compareTo(password) != 0) {
-                    throw new AuthException(AuthCode.INCORRECT_PASSWORD, "Incorrect Password!");
+                List<User> results = (List<User>) res;
+                User usr = results == null || results.isEmpty() ? null : results.get(0);
+
+                if (usr != null) {
+                    if (usr.getPassword().compareTo(password) != 0) {
+                        throw new AuthException(AuthCode.INCORRECT_PASSWORD, "Incorrect Password!");
+                    } else {
+                        setLoggedInUser(usr);
+                    }
                 } else {
-                    setLoggedInUser(usr);
+                    throw new AuthException(AuthCode.USER_NOT_FOUND, "User not found!");
                 }
-            } else {
-                throw new AuthException(AuthCode.USER_NOT_FOUND, "User not found!");
-            }
-            return user;
-        } catch (AuthException e) {
-            setLoggedInUser(null);
-            //todo logging
-            throw e;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);//todo
-        }
 
+            } catch (AuthException e) {
+                setLoggedInUser(null);
+                //todo logging
+            } catch (InterruptedException e) {
+                setLoggedInUser(null);
+//todo
+            }
+        });
     }
 
     private void updateListeners() {

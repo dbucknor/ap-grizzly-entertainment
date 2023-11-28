@@ -37,8 +37,8 @@ public class TableFrame<T extends ITableEntity, K extends Serializable> extends 
         super(name);
 
         themeManager = ThemeManager.getInstance();
-        this.name = name;
         tableController = new TableController<>(type);
+        this.name = name;
 
         this.type = type;
         this.listeners = new ArrayList<>();
@@ -168,9 +168,8 @@ public class TableFrame<T extends ITableEntity, K extends Serializable> extends 
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentShown(ComponentEvent e) {
-                System.out.println("Table shown");
-//                tableController.getClient().connect();
                 tableController.refreshData();
+
                 super.componentShown(e);
             }
 

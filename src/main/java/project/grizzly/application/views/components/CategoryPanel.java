@@ -103,8 +103,10 @@ public class CategoryPanel extends Box implements IView {
     public void setEquipments(List<Equipment> equipments) {
         this.equipments = equipments;
         addItemsToPanel();
-        this.repaint();
+//        this.repaint();
+        revalidate();
     }
+
 
     public String getTitle() {
         return title;

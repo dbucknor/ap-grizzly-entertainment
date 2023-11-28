@@ -12,6 +12,8 @@ import project.grizzly.application.views.components.fields.SearchBar;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +72,7 @@ public class CustomerHome extends Box implements IView {
             @Override
             public void onChange(String fieldValue) {
                 if (fieldValue == null || fieldValue.trim().isEmpty()) {
-                    controller.setFilteredRecords(controller.getAllRecords());
+                    controller.setFilteredRecords(controller.getRecords());
                 }
             }
 
@@ -92,7 +94,13 @@ public class CustomerHome extends Box implements IView {
             }
         });
 
-
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                controller.refreshData();
+                super.componentShown(e);
+            }
+        });
     }
 
     @Override

@@ -2,6 +2,8 @@ package project.grizzly.application.services;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import project.grizzly.server.Request;
+import project.grizzly.server.Response;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,22 +11,26 @@ import java.io.ObjectOutputStream;
 import java.net.*;
 import java.util.concurrent.*;
 
-public class Client {
+public class Client extends Thread {
     private ObjectInputStream is;
     private ObjectOutputStream os;
     private Socket connection;
     private static Client instance;
     private final Logger logger = LogManager.getLogger(Client.class);
     private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final BlockingQueue<Object> requestQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<Object> responseQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Response> responseQueue = new LinkedBlockingQueue<>();
 
     public Client() {
-//        executor.submit(() -> {
+        start();
+    }
+
+    @Override
+    public void run() {
         createConnection();
         getStreams();
-        process();
-//        });
+        processRequests();
+        super.run();
     }
 
     public static Client getInstance() {
@@ -75,38 +81,41 @@ public class Client {
         }
     }
 
-    public void sendAction(String request) throws InterruptedException {
+    public void sendRequest(Request request) throws InterruptedException {
 //        executor.submit(() -> {
         try {
+//            if (requestQueue.contains(request)) return;
             requestQueue.put(request);
-            logger.info("Sent Request: " + request);
+            logger.info("Added to queue Request: " + request + "\n");
         } catch (Exception e) {
-            throw e;
+            e.printStackTrace();
         }
 //        });
     }
 
-    public void send(Object obj) throws InterruptedException {
-//        executor.submit(() -> {
-        try {
-            requestQueue.put(obj);
-            logger.info("Sent object: " + obj);
-        } catch (InterruptedException e) {
-            throw e;
-        }
-        //        });
-    }
+//    public void send(Object obj) throws InterruptedException {
+////        executor.submit(() -> {
+//        try {
+//            requestQueue.put(obj);
+//            logger.info("Added to queue object: " + obj);
+//        } catch (InterruptedException e) {
+//            throw e;
+//        }
+//        //        });
+//    }
 
-    private void process() {
+    private void processRequests() {
         executor.submit(() -> {
             while (true) {
                 try {
-                    Object o = requestQueue.take();
-                    logger.info("Sent queue object: " + o);
+                    Request o = requestQueue.take();
                     os.writeObject(o);
+                    logger.info("Sent queue object: " + o + "\n");
+//                    System.out.println("Request Queue: " + requestQueue + "\n\n");
                     processResponse();
                 } catch (IOException | InterruptedException ex) {
                     logger.error(ex.getMessage());
+                    ex.printStackTrace();
                 }
             }
         });
@@ -114,32 +123,68 @@ public class Client {
 
     public void processResponse() {
         try {
-            Object o = is != null ? is.readObject() : "NULL";
-            o = o == null ? "NULL" : o;
-            responseQueue.put(o);
+            if (is != null) {
+                Response r = (Response) is.readObject();
+                responseQueue.put(r);
+            } else {
+                responseQueue.put(new Response(null, null));
+            }
         } catch (Exception ex) {
             logger.error(ex.getMessage());
         }
     }
 
-    public Object receiveResponse() {
-//        Future<Object> f = executor.submit((Callable<Object>) () -> {
+    public Object receiveResponse(Request request) {
+        Future<Object> f = executor.submit((Callable<Object>) () -> {
+            Response o = responseQueue.take();
+            logger.info("Response  received: " + o + "\n");
+            return o;
+        });
+
         try {
-            Object o = responseQueue.take();
-            logger.info("Response  received: " + o);
-            return o instanceof String && ((String) o).compareTo("NULL") == 0 ? null : o;
+            return f.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private Object getResponseFromQueue(Request request, Integer retry) {
+        try {
+//            if (retry == 10) {
+//                return resendRequest(request, retry);
+//            }
+//            if (retry == 30) {
+//                return new Response(request, null);
+//            }
+//
+//            if (responseQueue.peek() != null && isResponseForRequest(request)) {
+            Response o = responseQueue.take();
+            logger.info("Response  received: " + o + "\n");
+            return o;
+//            } else {
+//                Thread.sleep(1000L * retry);
+//                retry++;
+//                System.out.println("Waiting for my response for request: \n" + request + "\n\n");
+//                System.out.println("Queue : " + responseQueue + "\n\n");
+//                return getResponseFromQueue(request, retry);
+//            }
         } catch (Exception ex) {
             logger.error(ex.getMessage());
             return null;
         }
-//        });
-//
-//        try {
-//            return f.get();
-//        } catch (InterruptedException | ExecutionException e) {
-//            e.printStackTrace();
-//            return null;
-//        }
+    }
+
+    private Object resendRequest(Request request, Integer retry) throws InterruptedException {
+        sendRequest(request);
+        retry++;
+
+        return getResponseFromQueue(request, retry);
+    }
+
+    private boolean isResponseForRequest(Request request) {
+        assert responseQueue.peek() != null;
+        return responseQueue.peek().getRequest().equals(request);
     }
 
 }

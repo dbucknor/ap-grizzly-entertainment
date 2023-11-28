@@ -15,9 +15,15 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name = "equipmentId")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Power extends Equipment {
+    @Column(name = "outputPower")
     private Double outputPower;
+    @Column(name = "phase")
     private Integer phase;
+    @Column(name = "outputVoltage")
     private String outputVoltage;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "fuelSource")
     private FuelSource fuelSource;
 
     public Power() {
@@ -44,11 +50,6 @@ public class Power extends Equipment {
         this.phase = power.phase;
         this.outputVoltage = power.outputVoltage;
         this.fuelSource = power.fuelSource;
-    }
-
-    @Override
-    public String getEquipmentId() {
-        return equipmentId;
     }
 
     public Double getOutputPower() {
@@ -89,6 +90,10 @@ public class Power extends Equipment {
 
     public void setFuelSource(FuelSource fuelSource) {
         this.fuelSource = fuelSource;
+    }
+
+    public void setFuelSource(String fuelSource) {
+        this.fuelSource = FuelSource.valueOf(fuelSource);
     }
 
     @Override

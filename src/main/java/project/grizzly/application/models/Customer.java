@@ -14,9 +14,6 @@ import java.util.Set;
 @PrimaryKeyJoinColumn(name = "userId")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Customer extends User {
-    @Column(name = "customerId")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String customerId;
     private String address;
     @Column(name = "phoneNumber")
     private String phoneNumber;
@@ -24,47 +21,58 @@ public class Customer extends User {
     private Set<Invoice> invoices;
     @OneToMany(mappedBy = "requestFrom", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<RentalRequest> sentRequests;
-
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Transaction> transactions;
 
     //Default Constructor
     public Customer() {
-        this.customerId = "";
+//        this.customerId = "";
         this.address = "";
         this.phoneNumber = "";
         invoices = new HashSet<>();
+        transactions = new HashSet<>();
     }
 
-    public Customer(String userId, String customerId, String email, String password, String firstName, String lastName, boolean loggedIn, UserType accountType, String address, String phoneNumber) {
-        super(userId, email, password, firstName, lastName, loggedIn, accountType);
+    public Customer(String customerId, String email, String password, String firstName, String lastName, boolean loggedIn, UserType accountType, String address, String phoneNumber) {
+        super(customerId, email, password, firstName, lastName, loggedIn, accountType);
         this.address = address;
         this.phoneNumber = phoneNumber;
-        this.customerId = customerId;
+        this.userId = customerId;
         this.invoices = new HashSet<>();
         this.messages = new HashSet<>();
         this.sentRequests = new HashSet<>();
+        this.transactions = new HashSet<>();
     }
 
     public Customer(Customer customer) {
         super(customer);
-        this.customerId = customer.customerId;
         this.address = customer.address;
         this.phoneNumber = customer.phoneNumber;
         this.invoices = customer.invoices;
         this.sentRequests = customer.sentRequests;
+        this.transactions = customer.transactions;
     }
 
     //Setters and Getters
     public String getCustomerId() {
-        return customerId;
+        return userId;
     }
 
 
     public void setCustomerId(String customerId) {
-        this.customerId = customerId;
+        this.userId = customerId;
     }
 
     public Set<Invoice> getInvoices() {
         return invoices;
+    }
+
+    public Set<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(Set<Transaction> transactions) {
+        this.transactions = transactions;
     }
 
     public void setInvoices(Set<Invoice> invoices) {
@@ -98,13 +106,13 @@ public class Customer extends User {
 
     @Override
     public Object[] getValues() {
-        return new Object[]{userId, customerId, firstName, lastName, phoneNumber, address, email, password, accountType};
+        return new Object[]{userId, firstName, lastName, phoneNumber, address, email, password, accountType};
     }
 
     @Transient
     @Override
     public String[] getTableTitles() {
-        return new String[]{"User Id", "Customer Id", "First Name", "Last Name", "Phone Number", "Address", "Email", "Password", "Account Type"};
+        return new String[]{"Customer Id", "First Name", "Last Name", "Phone Number", "Address", "Email", "Password", "Account Type"};
     }
 
     @Transient

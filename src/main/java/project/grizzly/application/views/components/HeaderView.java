@@ -123,6 +123,13 @@ public class HeaderView extends JPanel implements IView {
             }
         });
 
+        accIcon.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AuthService.getInstance().logOut();
+            }
+        });
+
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
